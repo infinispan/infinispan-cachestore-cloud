@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-cachestore-parent</artifactId>
+      <version>6.0.0-SNAPSHOT</version>
+   </parent>
+   <artifactId>infinispan-cachestore-cloud</artifactId>
+   <packaging>bundle</packaging>
+   <name>Infinispan CloudCacheStore</name>
+   <description>Infinispan CloudCacheStore module</description>
+
+   <properties>
+      <version.commons.compress>1.4</version.commons.compress>
+      <version.jclouds>1.4.1</version.jclouds>
+   </properties>
+
+   <dependencies>
+      <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>commons-compress</artifactId>
+         <version>${version.commons.compress}</version>
+      </dependency>
+      <dependency>
+         <groupId>org.jclouds</groupId>
+         <artifactId>jclouds-blobstore</artifactId>
+         <version>${version.jclouds}</version>
+      </dependency>
+      <dependency>
+         <groupId>org.jclouds.driver</groupId>
+         <artifactId>jclouds-enterprise</artifactId>
+         <version>${version.jclouds}</version>
+      </dependency>
+      <dependency>
+         <groupId>org.jclouds.driver</groupId>
+         <artifactId>jclouds-log4j</artifactId>
+         <version>${version.jclouds}</version>
+      </dependency>
+      <!-- =========================================================== -->
+      <!-- optional cloud provider plug-ins.  You'd need at least one! -->
+      <dependency>
+         <groupId>org.jclouds</groupId>
+         <artifactId>jclouds-allblobstore</artifactId>
+         <version>${version.jclouds}</version>
+         <optional>true</optional>
+      </dependency>
+      <!-- =========================================================== -->
+   </dependencies>
+
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <reuseForks>true</reuseForks>
+               <forkCount>1</forkCount>
+               <parallel>false</parallel>
+               <systemPropertyVariables>
+                  <infinispan.test.jclouds.username>${infinispan.test.jclouds.username}</infinispan.test.jclouds.username>
+                  <infinispan.test.jclouds.password>${infinispan.test.jclouds.password}</infinispan.test.jclouds.password>
+                  <infinispan.test.jclouds.service>${infinispan.test.jclouds.service}</infinispan.test.jclouds.service>
+               </systemPropertyVariables>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>maven-bundle-plugin</artifactId>
+            <configuration>
+               <instructions>
+                  <Export-Package>
+                     ${project.groupId}.loaders.cloud.*;version=${project.version};-split-package:=error
+                  </Export-Package>
+               </instructions>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
+
+   <profiles>
+      <profile>
+         <id>integration</id>
+         <activation>
+            <activeByDefault>false</activeByDefault>
+         </activation>
+         <properties>
+            <test.src.dir>src/integrationtest/java</test.src.dir>
+         </properties>
+      </profile>
+   </profiles>
+</project>
+
