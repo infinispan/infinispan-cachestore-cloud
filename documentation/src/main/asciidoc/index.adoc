@@ -1,0 +1,34 @@
+= Cloud Cache Store
+The Infinispan Community
+:icons: font
+
+== Introduction
+The `CloudCacheStore` implementation utilizes link:$$http://code.google.com/p/jclouds/$$[JClouds]
+to communicate with cloud storage providers such as link:$$http://aws.amazon.com/s3/$$[Amazon's S3],
+Rackspace's link:$$http://www.rackspacecloud.com/cloud_hosting_products/files$$[Cloudfiles]
+or any other such provider supported by JClouds.
+
+=== Amazon
+If you're planning to use Amazon S3 for storage, consider using it with Infinispan.
+Infinispan itself provides in-memory caching for your data to minimize the amount
+of remote access calls, thus reducing the latency and cost of fetching your
+Amazon S3 data.
+
+With cache replication, you are also able to load data from your local cluster
+without having to remotely access it every time.
+
+==== Transactions
+Note that Amazon S3 does not support transactions.
+
+If transactions are used in your application then there is some possibility of
+state inconsistency when using this cache loader.
+
+However, writes are atomic, in that if a write fails nothing is considered
+written and data is never corrupted.
+
+== Javadoc
+For a list of configuration refer to the link:$$http://docs.jboss.org/infinispan/4.0/apidocs/org/infinispan/loaders/cloud/CloudCacheStoreConfig.html$$[javadoc] . 
+
+== Configuration
+
+*TODO* 
