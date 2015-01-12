@@ -1,4 +1,4 @@
-package org.infinispan.loaders.cloud.configuration;
+package org.infinispan.persistence.cloud.configuration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,26 +7,34 @@ import java.util.Map;
  * Enumerates the attributes used by the Cloud cache store configuration
  *
  * @author Tristan Tarrant
+ * @author Damiano Albani
  * @since 5.2
  */
 public enum Attribute {
    // must be first
    UNKNOWN(null),
 
-   BUCKET_PREFIX("bucketPrefix"),
-   CLOUD_SERVICE("cloudService"),
-   CLOUD_SERVICE_LOCATION("cloudServiceLocation"),
-   COMPRESS("compress"),
+   PROVIDER("provider"),
    IDENTITY("identity"),
-   LAZY_PURGING_ONLY("lazyPurgingOnly"),
-   MAX_CONNECTIONS("maxConnections"),
-   PASSWORD("password"),
-   PROXY_HOST("proxyHost"),
-   PROXY_PORT("proxyPort"),
-   REQUEST_TIMEOUT("requestTimeout"),
-   SECURE("secure"),
-
+   CREDENTIAL("credential"),
+   CONTAINER("container"),
+   KEY_TO_STRING_MAPPER("key2StringMapper"),
    ;
+
+   private final String name;
+
+   private Attribute(final String name) {
+      this.name = name;
+   }
+
+   /**
+    * Get the local name of this element.
+    *
+    * @return the local name
+    */
+   public String getLocalName() {
+      return name;
+   }
 
    private static final Map<String, Attribute> attributes;
 
@@ -44,20 +52,5 @@ public enum Attribute {
    public static Attribute forName(final String localName) {
       final Attribute attribute = attributes.get(localName);
       return attribute == null ? UNKNOWN : attribute;
-   }
-
-   private final String name;
-
-   private Attribute(final String name) {
-      this.name = name;
-   }
-
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName() {
-      return name;
    }
 }
