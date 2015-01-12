@@ -1,14 +1,13 @@
-package org.infinispan.loaders.cloud.configuration;
+package org.infinispan.persistence.cloud.configuration;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.infinispan.loaders.cloud.CloudCacheStore;
-
 /**
- * An enumeration of all the recognized XML element local names for the {@link CloudCacheStore}
+ * An enumeration of all the recognized XML element local names for the {@link CloudStore}
  *
  * @author Tristan Tarrant
+ * @author Damiano Albani
  * @since 5.2
  */
 public enum Element {
