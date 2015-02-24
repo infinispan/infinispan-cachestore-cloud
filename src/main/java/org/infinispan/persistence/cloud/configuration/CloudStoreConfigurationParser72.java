@@ -9,21 +9,31 @@ import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 import org.infinispan.configuration.parsing.ConfigurationParser;
+import org.infinispan.configuration.parsing.Namespace;
+import org.infinispan.configuration.parsing.Namespaces;
 import org.infinispan.configuration.parsing.ParseUtils;
-import org.infinispan.configuration.parsing.Parser60;
+import org.infinispan.configuration.parsing.Parser71;
 import org.infinispan.configuration.parsing.XMLExtendedStreamReader;
+import org.kohsuke.MetaInfServices;
+
 
 /**
 *
-* CloudStoreConfigurationParser60.
-*
-* @author Galder Zamarreño
-* @author Damiano Albani
-* @since 6.0
+* CloudStoreConfigurationParser71.
+* 
+* @since 7.2
 */
-public class CloudStoreConfigurationParser60 implements ConfigurationParser {
+@MetaInfServices
+@Namespaces({
+      @Namespace(uri = "urn:infinispan:config:store:cloud:7.2",
+                 root = CloudStoreConfigurationParser72.ROOT_ELEMENT),
+      @Namespace(root = CloudStoreConfigurationParser72.ROOT_ELEMENT)
+})
+public class CloudStoreConfigurationParser72 implements ConfigurationParser {
 
-   public CloudStoreConfigurationParser60() {
+   public static final String ROOT_ELEMENT = "cloud-store";
+   
+   public CloudStoreConfigurationParser72() {
    }
 
    @Override
@@ -52,7 +62,7 @@ public class CloudStoreConfigurationParser60 implements ConfigurationParser {
          Element element = Element.forName(reader.getLocalName());
          switch (element) {
          default: {
-            Parser60.parseCommonStoreChildren(reader, builder);
+            Parser71.parseStoreElement(reader, builder);
             break;
          }
          }
@@ -72,6 +82,10 @@ public class CloudStoreConfigurationParser60 implements ConfigurationParser {
             builder.provider(value);
             break;
          }
+         case LOCATION: {
+            builder.location(value);
+            break;
+         }
          case IDENTITY: {
             builder.identity(value);
             break;
@@ -89,10 +103,15 @@ public class CloudStoreConfigurationParser60 implements ConfigurationParser {
             break;
          }
          default: {
-            Parser60.parseCommonStoreAttributes(reader, builder, attributeName, value, i);
+            Parser71.parseStoreAttribute(reader, i, builder);
             break;
          }
          }
       }
+   }
+
+   @Override
+   public Namespace[] getNamespaces() {
+      return ParseUtils.getNamespaceAnnotations(getClass());
    }
 }

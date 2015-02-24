@@ -23,8 +23,8 @@
 package org.infinispan.persistence.cloud.logging;
 
 import org.infinispan.commons.CacheConfigurationException;
-import org.jboss.logging.MessageLogger;
 import org.jboss.logging.annotations.Message;
+import org.jboss.logging.annotations.MessageLogger;
 
 /**
  * Log abstraction for the cloud cache store. For this module, message ids
@@ -32,19 +32,22 @@ import org.jboss.logging.annotations.Message;
  *
  * @author Galder Zamarreño
  * @author Damiano Albani
- * @since 5.0
+ * @since 7.2
  */
 @MessageLogger(projectCode = "ISPN")
 public interface Log extends org.infinispan.util.logging.Log {
    @Message(value = "Provider not specified", id = 7001)
    CacheConfigurationException providerNotSpecified();
+   
+   @Message(value = "Location not specified", id = 7002)
+   CacheConfigurationException locationNotSpecified();
 
-   @Message(value = "Identity not specified", id = 7002)
+   @Message(value = "Identity not specified", id = 7003)
    CacheConfigurationException identityNotSpecified();
 
-   @Message(value = "Credential not specified", id = 7003)
+   @Message(value = "Credential not specified", id = 7004)
    CacheConfigurationException credentialNotSpecified();
 
-   @Message(value = "Container not specified", id = 7004)
+   @Message(value = "Container not specified", id = 7005)
    CacheConfigurationException containerNotSpecified();
 }

@@ -7,6 +7,7 @@ import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
  * AbstractCloudStoreConfigurationChildBuilder.
  *
  * @author Damiano Albani
+ * @since 7.2
  */
 public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends AbstractStoreConfigurationChildBuilder<S> implements CloudStoreConfigurationChildBuilder<S> {
    private final CloudStoreConfigurationBuilder builder;
@@ -19,6 +20,11 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
    @Override
    public CloudStoreConfigurationBuilder provider(String provider) {
       return builder.provider(provider);
+   }
+   
+   @Override
+   public CloudStoreConfigurationBuilder location(String location) {
+      return builder.location(location);
    }
 
    @Override
@@ -33,7 +39,7 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
 
    @Override
    public CloudStoreConfigurationBuilder container(String container) {
-      return builder.container(container);
+      return builder.location(container);
    }
 
    @Override

@@ -3,18 +3,20 @@ package org.infinispan.persistence.cloud.configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.infinispan.persistence.cloud.CloudStore;
+
 /**
  * An enumeration of all the recognized XML element local names for the {@link CloudStore}
  *
  * @author Tristan Tarrant
  * @author Damiano Albani
- * @since 5.2
+ * @since 7.2
  */
 public enum Element {
     // must be first
     UNKNOWN(null),
 
-    CLOUD_STORE("cloudStore"),
+    CLOUD_STORE(CloudStoreConfigurationParser72.ROOT_ELEMENT),
     ;
 
     private final String name;

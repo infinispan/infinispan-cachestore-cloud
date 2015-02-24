@@ -13,12 +13,13 @@ import org.infinispan.persistence.cloud.CloudStore;
  * CloudStoreConfiguration.
  *
  * @author Damiano Albani
- * @since 6.0
+ * @since 7.2
  */
 @BuiltBy(CloudStoreConfigurationBuilder.class)
 @ConfigurationFor(CloudStore.class)
 public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    private final String provider;
+   private final String location;
    private final String identity;
    private final String credential;
    private final String container;
@@ -27,10 +28,11 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    public CloudStoreConfiguration(boolean purgeOnStartup, boolean fetchPersistentState, boolean ignoreModifications,
                                    AsyncStoreConfiguration async, SingletonStoreConfiguration singletonStore,
                                    boolean preload, boolean shared, Properties properties,
-                                   String provider, String identity, String credential,
+                                   String provider, String location, String identity, String credential,
                                    String container, String key2StringMapper) {
       super(purgeOnStartup, fetchPersistentState, ignoreModifications, async, singletonStore, preload, shared, properties);
       this.provider = provider;
+      this.location = location;
       this.identity = identity;
       this.credential = credential;
       this.container = container;
@@ -41,6 +43,10 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
       return provider;
    }
 
+   public String location() {
+      return location;
+   }
+   
    public String identity() {
       return identity;
    }
