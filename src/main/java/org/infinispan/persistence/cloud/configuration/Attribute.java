@@ -8,17 +8,18 @@ import java.util.Map;
  *
  * @author Tristan Tarrant
  * @author Damiano Albani
- * @since 5.2
+ * @since 7.2
  */
 public enum Attribute {
    // must be first
    UNKNOWN(null),
 
    PROVIDER("provider"),
+   LOCATION("location"),
    IDENTITY("identity"),
    CREDENTIAL("credential"),
    CONTAINER("container"),
-   KEY_TO_STRING_MAPPER("key2StringMapper"),
+   KEY_TO_STRING_MAPPER("key-to-string-mapper"),
    ;
 
    private final String name;

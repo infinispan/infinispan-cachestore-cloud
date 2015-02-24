@@ -1,52 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-   <modelVersion>4.0.0</modelVersion>
-   <parent>
-      <groupId>org.infinispan</groupId>
-      <artifactId>infinispan-persistence-parent</artifactId>
-      <version>6.0.2.Final</version>
-   </parent>
-   <artifactId>infinispan-cachestore-cloud</artifactId>
-   <packaging>bundle</packaging>
-   <name>Infinispan CloudCacheStore</name>
-   <description>Infinispan CloudCacheStore module</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-persistence-parent</artifactId>
+        <version>7.1.1.Final</version>
+    </parent>
+    <artifactId>infinispan-cachestore-cloud</artifactId>
+    <packaging>bundle</packaging>
+    <name>Infinispan CloudCacheStore</name>
+    <description>Infinispan CloudCacheStore module</description>
 
-   <properties>
-      <version.jclouds>1.8.1</version.jclouds>
-   </properties>
+    <properties>
+        <version.jclouds>1.8.1</version.jclouds>
+        <version.guava>17.0</version.guava> <!-- overwrite guava version from ISPN parent to version which JClouds depends on-->
+        <version.metainf-services>1.5</version.metainf-services>
+    </properties>
 
-   <dependencies>
-      <dependency>
-         <groupId>${project.groupId}</groupId>
-         <artifactId>infinispan-core</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.apache.jclouds</groupId>
-         <artifactId>jclouds-allblobstore</artifactId>
-         <version>${version.jclouds}</version>
-      </dependency>
-      <dependency>
-         <groupId>org.apache.jclouds.labs</groupId>
-         <artifactId>google-cloud-storage</artifactId>
-         <version>${version.jclouds}</version>
-      </dependency>
-   </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>infinispan-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kohsuke.metainf-services</groupId>
+            <artifactId>metainf-services</artifactId>
+            <optional>true</optional>
+            <version>${version.metainf-services}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jclouds</groupId>
+            <artifactId>jclouds-blobstore</artifactId>
+            <version>${version.jclouds}</version>
+        </dependency>
+    </dependencies>
 
-   <build>
-      <plugins>
-         <plugin>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>maven-bundle-plugin</artifactId>
-            <configuration>
-               <instructions>
-                  <Export-Package>
-                     ${project.groupId}.persistence.cloud.*;version=${project.version};-split-package:=error
-                  </Export-Package>
-               </instructions>
-            </configuration>
-         </plugin>
-      </plugins>
-   </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            ${project.groupId}.persistence.cloud.*;version=${project.version};-split-package:=error
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -2,6 +2,7 @@ package org.infinispan.persistence.cloud.configuration;
 
 import org.infinispan.configuration.cache.AbstractStoreConfigurationBuilder;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
+import org.infinispan.persistence.cloud.CloudStore;
 import org.infinispan.persistence.cloud.logging.Log;
 import org.infinispan.persistence.keymappers.MarshalledValueOrPrimitiveMapper;
 import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
@@ -12,13 +13,14 @@ import org.infinispan.util.logging.LogFactory;
  *
  * @author Tristan Tarrant
  * @author Damiano Albani
- * @since 5.2
+ * @since 7.2
  */
 public class CloudStoreConfigurationBuilder extends AbstractStoreConfigurationBuilder<CloudStoreConfiguration, CloudStoreConfigurationBuilder>
 implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    private static final Log log = LogFactory.getLog(CloudStoreConfigurationBuilder.class, Log.class);
 
    private String provider;
+   private String location;
    private String identity;
    private String credential;
    private String container;
@@ -36,6 +38,12 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    @Override
    public CloudStoreConfigurationBuilder provider(String provider) {
       this.provider = provider;
+      return this;
+   }
+   
+   @Override
+   public CloudStoreConfigurationBuilder location(String location) {
+      this.location = location;
       return this;
    }
 
@@ -73,12 +81,13 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    public CloudStoreConfiguration create() {
       return new CloudStoreConfiguration(purgeOnStartup, fetchPersistentState, ignoreModifications, async.create(),
                                          singletonStore.create(), preload, shared, properties,
-                                         provider, identity, credential, container, key2StringMapper);
+                                         provider, location, identity, credential, container, key2StringMapper);
    }
 
    @Override
    public CloudStoreConfigurationBuilder read(CloudStoreConfiguration template) {
       this.provider = template.provider();
+      this.location = template.location();
       this.identity = template.identity();
       this.credential = template.credential();
       this.container = template.container();
@@ -100,6 +109,9 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    public void validate() {
       if (provider == null) {
          throw log.providerNotSpecified();
+      }
+      if (location == null) {
+         throw log.locationNotSpecified();
       }
       if (identity == null) {
          throw log.identityNotSpecified();

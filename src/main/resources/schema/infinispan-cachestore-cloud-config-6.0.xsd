@@ -14,28 +14,35 @@
           <xs:attribute name="provider" type="xs:string">
             <xs:annotation>
               <xs:documentation>
-                TODO
+                The name of JCloud BlobStore provider.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="location" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>
+                BlobStore location ID provided by provider.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           <xs:attribute name="identity" type="xs:string">
             <xs:annotation>
               <xs:documentation>
-                TODO
+                Login for current JClouds BlobStore.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           <xs:attribute name="credential" type="xs:string">
             <xs:annotation>
               <xs:documentation>
-                TODO
+                Credentials for current login and JClouds BlobStore.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
           <xs:attribute name="container" type="xs:string">
             <xs:annotation>
               <xs:documentation>
-                TODO
+                BlobStore container name. Actual container name will be construct $conatinerName_$cacheName.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>

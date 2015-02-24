@@ -3,8 +3,10 @@ package org.infinispan.persistence.cloud;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -13,11 +15,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.infinispan.commons.util.Util;
 import org.infinispan.executors.ExecutorAllCompletionService;
+import org.infinispan.filter.KeyFilter;
 import org.infinispan.marshall.core.MarshalledEntry;
 import org.infinispan.metadata.EmbeddedMetadata;
 import org.infinispan.metadata.InternalMetadata;
-import org.infinispan.metadata.InternalMetadataImpl;
 import org.infinispan.metadata.Metadata;
+import org.infinispan.metadata.impl.InternalMetadataImpl;
 import org.infinispan.persistence.TaskContextImpl;
 import org.infinispan.persistence.cloud.configuration.CloudStoreConfiguration;
 import org.infinispan.persistence.cloud.logging.Log;
@@ -34,25 +37,35 @@ import org.jclouds.blobstore.domain.BlobMetadata;
 import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
+import org.jclouds.domain.Location;
+import org.jclouds.domain.LocationBuilder;
+import org.jclouds.domain.LocationScope;
 
 import com.google.common.io.ByteSource;
 import com.google.common.net.MediaType;
 
 /**
- * The CloudStore implementation that utilizes <a href="http://code.google.com/p/jclouds">JClouds</a> to
- * communicate with cloud storage providers such as <a href="http://aws.amazon.com/s3/">Amazon's S3<a>, <a
- * href="http://www.rackspacecloud.com/cloud_hosting_products/files">Rackspace's Cloudfiles</a>, or any other such
- * provider supported by JClouds.
+ * The CloudStore implementation that utilizes <a
+ * href="http://code.google.com/p/jclouds">JClouds</a> to communicate with cloud storage providers
+ * such as <a href="http://aws.amazon.com/s3/">Amazon's S3<a>, <a
+ * href="http://www.rackspacecloud.com/cloud_hosting_products/files">Rackspace's Cloudfiles</a>, or
+ * any other such provider supported by JClouds.
  * <p/>
- *
+ * 
  * @author Manik Surtani
  * @author Adrian Cole
  * @author Damiano Albani
- * @since 4.0
+ * @author Vojtech Juranek
+ * @since 7.2
  */
-public class CloudStore implements AdvancedLoadWriteStore {
+public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
    private static final Log log = LogFactory.getLog(CloudStore.class, Log.class);
 
+   protected static final String LIFESPAN = "metadata_lifespan";
+   protected static final String MAX_IDLE = "metadata_max_idle";
+   protected static final String EXPIRE_TIME = "expire_time";
+   protected static final int BATCH_SIZE = 1000;
+   
    private CloudStoreConfiguration configuration;
    private InitializationContext initializationContext;
 
@@ -60,6 +73,11 @@ public class CloudStore implements AdvancedLoadWriteStore {
 
    private BlobStoreContext blobStoreContext;
    private BlobStore blobStore;
+   private String containerName;
+
+   public CloudStoreConfiguration getConfiguration() {
+      return configuration;
+   }
 
    @Override
    public void init(InitializationContext initializationContext) {
@@ -69,20 +87,29 @@ public class CloudStore implements AdvancedLoadWriteStore {
 
    @Override
    public void start() {
-      key2StringMapper = Util.getInstance(configuration.key2StringMapper(),
-                                          initializationContext.getCache().getAdvancedCache().getClassLoader());
+      key2StringMapper = Util.getInstance(configuration.key2StringMapper(), initializationContext.getCache()
+            .getAdvancedCache().getClassLoader());
       key2StringMapper.setMarshaller(initializationContext.getMarshaller());
 
       blobStoreContext = ContextBuilder.newBuilder(configuration.provider())
-                                       .credentials(configuration.identity(), configuration.credential())
-                                       .buildView(BlobStoreContext.class);
+            .credentials(configuration.identity(), configuration.credential())
+            .buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
+      containerName = String.format("%s_%s", configuration.container(), initializationContext.getCache().getName());
 
-      String container = configuration.container();
-
-      if (!blobStore.containerExists(container)) {
-         // TODO assert(created)
+      if (!blobStore.containerExists(containerName)) {
+         Location location = new LocationBuilder()
+               .scope(LocationScope.REGION)
+               .id(configuration.location()) 
+               .description(String.format("Infinispan cache store for %s", containerName))
+               .build();
+         blobStore.createContainerInLocation(location, containerName);
+         
+         //make sure container is created
+         if(!blobStore.containerExists(containerName)) {
+            throw new PersistenceException(String.format("Unable to create blob container %s", containerName));
+         }
       }
    }
 
@@ -99,7 +126,7 @@ public class CloudStore implements AdvancedLoadWriteStore {
       return key2StringMapper.getKeyMapping(key);
    }
 
-   private byte[] marshall(MarshalledEntry entry) throws IOException, InterruptedException {
+   private byte[] marshall(MarshalledEntry<? extends K, ? extends V> entry) throws IOException, InterruptedException {
       return initializationContext.getMarshaller().objectToByteBuffer(entry.getValue());
    }
 
@@ -108,26 +135,29 @@ public class CloudStore implements AdvancedLoadWriteStore {
    }
 
    @Override
-   public void write(MarshalledEntry entry) {
+   public void write(MarshalledEntry<? extends K, ? extends V> entry) {
       String objectName = encodeKey(entry.getKey());
       try {
          ByteSource payload = ByteSource.wrap(marshall(entry));
-
          Date expiresDate = null;
 
          InternalMetadata metadata = entry.getMetadata();
          if (metadata != null && metadata.expiryTime() > -1) {
             expiresDate = new Date(metadata.expiryTime());
          }
+         Map<String, String> ispnMetadata = new HashMap<String, String>();
+         ispnMetadata.put(LIFESPAN, metadata == null ? "-1" : String.valueOf(metadata.lifespan()));
+         ispnMetadata.put(MAX_IDLE, metadata == null ? "-1" : String.valueOf(metadata.maxIdle()));
+         ispnMetadata.put(EXPIRE_TIME, metadata == null ? "-1" : String.valueOf(metadata.expiryTime()));
 
          Blob blob = blobStore.blobBuilder(objectName)
-                              .payload(payload)
-                              .contentLength(payload.size())
-                              .contentType(MediaType.OCTET_STREAM.toString())
-                              .expires(expiresDate)
-                              .build();
-
-         blobStore.putBlob(configuration.container(), blob);
+                  .payload(payload)
+                  .contentLength(payload.size())
+                  .contentType(MediaType.OCTET_STREAM)
+                  .expires(expiresDate)
+                  .userMetadata(ispnMetadata)
+                  .build();
+         blobStore.putBlob(containerName, blob);
       } catch (Exception e) {
          throw new PersistenceException(e);
       }
@@ -135,85 +165,91 @@ public class CloudStore implements AdvancedLoadWriteStore {
 
    @Override
    public void clear() {
-      blobStore.clearContainer(configuration.container());
+      blobStore.clearContainer(containerName);
    }
 
    @Override
    public boolean delete(Object key) {
       String objectName = encodeKey(key);
-
-      blobStore.removeBlob(configuration.container(), objectName);
-
-      return true;
+      if (blobStore.blobExists(containerName, objectName)) {
+         blobStore.removeBlob(containerName, objectName);
+         return true;
+      }
+      return false;
    }
 
    @Override
-   public MarshalledEntry load(Object key) {
+   public MarshalledEntry<K, V> load(Object key) {
       String objectName = encodeKey(key);
-
-      Blob blob = blobStore.getBlob(configuration.container(), objectName);
+      Blob blob = blobStore.getBlob(containerName, objectName);
 
       if (blob == null) {
          return null;
       }
 
       BlobMetadata blobMetadata = blob.getMetadata();
-
+      
+      if(isExpired(blobMetadata)) {
+         blobStore.removeBlob(containerName, objectName);
+         return null;
+      }
+      
+      Map<String, String> ispnMetadata = blob.getMetadata().getUserMetadata();
       Date expiresDate = blobMetadata.getContentMetadata().getExpires();
+      long ttl = -1, maxIdle = -1, now = initializationContext.getTimeService().wallClockTime();
 
-      long ttl = -1,
-           maxIdle = -1,
-           now = initializationContext.getTimeService().wallClockTime();
-
-      if (expiresDate != null) {
-         ttl = expiresDate.getTime() - now;
-      }
-
-      Metadata metadata = new EmbeddedMetadata.Builder()
-                                              .lifespan(ttl, TimeUnit.MILLISECONDS)
-                                              .maxIdle(maxIdle, TimeUnit.MILLISECONDS)
-                                              .build();
-      InternalMetadata internalMetadata;
-      if (metadata.lifespan() > -1) {
-         internalMetadata = new InternalMetadataImpl(metadata, now, now);
+      if (ispnMetadata != null) {
+         try {
+            ttl = ispnMetadata.containsKey(LIFESPAN) ? Long.parseLong(ispnMetadata.get(LIFESPAN)) : -1; 
+            maxIdle = ispnMetadata.containsKey(MAX_IDLE) ? Long.parseLong(ispnMetadata.get(MAX_IDLE)) : -1;
+         } catch(NumberFormatException e) {
+            //NO-OP default to -1 value
+         }
       } else {
-         internalMetadata = new InternalMetadataImpl(metadata, -1, -1);
+         if (expiresDate != null) {
+            ttl = expiresDate.getTime() - now;
+         }
       }
 
+      Metadata metadata = new EmbeddedMetadata.Builder().lifespan(ttl, TimeUnit.MILLISECONDS)
+            .maxIdle(maxIdle, TimeUnit.MILLISECONDS).build();
+      InternalMetadata internalMetadata = new InternalMetadataImpl(metadata, now, now);
+      
       try {
-         return initializationContext.getMarshalledEntryFactory()
-                                     .newMarshalledEntry(key,
-                                                         unmarshall(blob.getPayload().openStream()), internalMetadata);
+         return initializationContext.getMarshalledEntryFactory().newMarshalledEntry(key,
+               unmarshall(blob.getPayload().openStream()), internalMetadata);
       } catch (Exception e) {
          throw new PersistenceException(e);
       }
    }
 
    @Override
-   public void process(KeyFilter keyFilter, final CacheLoaderTask cacheLoaderTask, Executor executor, boolean loadValue, boolean loadMetadata) {
+   public void process(KeyFilter<? super K> keyFilter, final CacheLoaderTask<K, V> cacheLoaderTask, Executor executor,
+         boolean loadValue, boolean loadMetadata) {
       String nextMarker = null;
       PageSet<? extends StorageMetadata> pageSet;
 
       do {
-         ListContainerOptions listOptions = ListContainerOptions.Builder.afterMarker(nextMarker);
+         ListContainerOptions listOptions = nextMarker == null ? ListContainerOptions.NONE
+               : ListContainerOptions.Builder.afterMarker(nextMarker);
 
-         pageSet = blobStore.list(configuration.container(), listOptions);
+         pageSet = blobStore.list(containerName, listOptions);
 
          ExecutorAllCompletionService eacs = new ExecutorAllCompletionService(executor);
          final TaskContext taskContext = new TaskContextImpl();
 
-         int batchSize = 1000;
-         Set<Object> entries = new HashSet<Object>(batchSize);
+         Set<Object> entries = new HashSet<Object>(BATCH_SIZE);
 
          Iterator<? extends StorageMetadata> storageMetadataIterator = pageSet.iterator();
          while (storageMetadataIterator.hasNext()) {
             StorageMetadata blobMetadata = storageMetadataIterator.next();
-            Object key = key2StringMapper.getKeyMapping(blobMetadata.getName());
-            if (keyFilter == null || keyFilter.shouldLoadKey(key))
+            K key = (K) key2StringMapper.getKeyMapping(blobMetadata.getName());
+            if (keyFilter == null || keyFilter.accept(key)) {
                entries.add(key);
-            if (entries.size() == batchSize) {
+            }
+            if (entries.size() == BATCH_SIZE) {
                final Set<Object> batch = entries;
-               entries = new HashSet<Object>(batchSize);
+               entries = new HashSet<Object>(BATCH_SIZE);
                submitProcessTask(cacheLoaderTask, eacs, taskContext, batch, loadValue, loadMetadata);
             }
          }
@@ -223,16 +259,15 @@ public class CloudStore implements AdvancedLoadWriteStore {
          }
          eacs.waitUntilAllCompleted();
          if (eacs.isExceptionThrown()) {
-            throw new PersistenceException("Execution exception!", eacs.getFirstException());
+            throw new PersistenceException("Process execution exception!", eacs.getFirstException());
          }
 
          nextMarker = pageSet.getNextMarker();
       } while (nextMarker != null);
    }
 
-   private void submitProcessTask(final CacheLoaderTask cacheLoaderTask, CompletionService ecs,
-                                  final TaskContext taskContext, final Set<Object> batch, final boolean loadEntry,
-                                  final boolean loadMetadata) {
+   private void submitProcessTask(final CacheLoaderTask<K, V> cacheLoaderTask, CompletionService<Void> ecs,
+         final TaskContext taskContext, final Set<Object> batch, final boolean loadEntry, final boolean loadMetadata) {
       ecs.submit(new Callable<Void>() {
          @Override
          public Void call() throws Exception {
@@ -241,7 +276,9 @@ public class CloudStore implements AdvancedLoadWriteStore {
                   if (taskContext.isStopped())
                      break;
                   if (!loadEntry && !loadMetadata) {
-                     cacheLoaderTask.processEntry(initializationContext.getMarshalledEntryFactory().newMarshalledEntry(key, (Object) null, null), taskContext);
+                     cacheLoaderTask.processEntry(
+                           initializationContext.getMarshalledEntryFactory().newMarshalledEntry(key, (Object) null,
+                                 null), taskContext);
                   } else {
                      cacheLoaderTask.processEntry(load(key), taskContext);
                   }
@@ -256,19 +293,97 @@ public class CloudStore implements AdvancedLoadWriteStore {
    }
 
    @Override
-   public void purge(Executor executor, PurgeListener purgeListener) {
-      // This should be handled by the remote server
+   public void purge(Executor executor, PurgeListener<? super K> purgeListener) {
+      String nextMarker = null;
+      PageSet<? extends StorageMetadata> pageSet;
+
+      do {
+         ListContainerOptions listOptions = nextMarker == null ? ListContainerOptions.NONE
+               : ListContainerOptions.Builder.afterMarker(nextMarker);
+         pageSet = blobStore.list(containerName, listOptions);
+
+         ExecutorAllCompletionService eacs = new ExecutorAllCompletionService(executor);
+         Set<String> entries = new HashSet<String>(BATCH_SIZE);
+
+         Iterator<? extends StorageMetadata> storageMetadataIterator = pageSet.iterator();
+         while (storageMetadataIterator.hasNext()) {
+            StorageMetadata storageMetadata = storageMetadataIterator.next();
+
+            Blob blob = blobStore.getBlob(containerName, storageMetadata.getName());
+            BlobMetadata blobMetadata = blob.getMetadata();
+
+            if (isExpired(blobMetadata)) {
+               entries.add(storageMetadata.getName());
+               if (entries.size() == BATCH_SIZE) {
+                  final Set<String> batch = entries;
+                  entries = new HashSet<String>(BATCH_SIZE);
+                  submitPurgeTask(eacs, batch, purgeListener);
+               }
+            }
+         }
+
+         if (!entries.isEmpty()) {
+            submitPurgeTask(eacs, entries, purgeListener);
+         }
+         eacs.waitUntilAllCompleted();
+         if (eacs.isExceptionThrown()) {
+            throw new PersistenceException("Purge execution exception!", eacs.getFirstException());
+         }
+
+         nextMarker = pageSet.getNextMarker();
+      } while (nextMarker != null);
+
+   }
+
+   private void submitPurgeTask(CompletionService<Void> ecs, final Set<String> batch, final PurgeListener<? super K> purgeListener) {
+      ecs.submit(new Callable<Void>() {
+         @Override
+         public Void call() throws Exception {
+            try {
+               for (String key : batch) {
+                  blobStore.removeBlob(containerName, key);
+                  purgeListener.entryPurged((K)key2StringMapper.getKeyMapping(key));
+               }
+            } catch (Exception e) {
+               log.errorExecutingParallelStoreTask(e);
+               throw e;
+            }
+            return null;
+         }
+      });
    }
 
    @Override
    public int size() {
-      return (int) blobStore.countBlobs(configuration.container());
+      return (int) blobStore.countBlobs(containerName);
    }
 
    @Override
    public boolean contains(Object key) {
       String objectName = encodeKey(key);
 
-      return blobStore.blobExists(configuration.container(), objectName);
+      return blobStore.blobExists(containerName, objectName);
    }
+
+   protected boolean isExpired(BlobMetadata blobMetadata) {
+      long now = initializationContext.getTimeService().wallClockTime();
+      Map<String, String> ispnMetadata = blobMetadata.getUserMetadata();
+      long et = -1;
+
+      if (ispnMetadata != null && ispnMetadata.containsKey(EXPIRE_TIME)) {
+         try {
+            et = ispnMetadata.containsKey(EXPIRE_TIME) ? Long.parseLong(ispnMetadata.get(EXPIRE_TIME)) : -1;
+         } catch(NumberFormatException e) {
+            // fall back to blob store expires time
+            if (blobMetadata.getContentMetadata().getExpires() != null)
+               et = blobMetadata.getContentMetadata().getExpires().getTime();
+         }
+      } else {
+         if (blobMetadata.getContentMetadata().getExpires() != null)
+            et = blobMetadata.getContentMetadata().getExpires().getTime();
+      }
+      
+      return (et > -1 && et < now) ? true : false;
+   }
+
 }

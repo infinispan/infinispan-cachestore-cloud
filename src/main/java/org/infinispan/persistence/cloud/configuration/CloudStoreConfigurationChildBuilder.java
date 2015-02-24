@@ -8,26 +8,31 @@ import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
  *
  * @author Tristan Tarrant
  * @author Damiano Albani
- * @since 6.0
+ * @since 7.2
  */
 public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurationChildBuilder<S> {
    /**
-    * TODO
+    * The name of JCloud BlobStore provider.
     */
    CloudStoreConfigurationBuilder provider(String provider);
+   
+   /**
+    * BlobStore location ID provided by provider.
+    */
+   CloudStoreConfigurationBuilder location(String location);
 
    /**
-    * TODO
+    * Login for current JClouds BlobStore.
     */
    CloudStoreConfigurationBuilder identity(String identity);
 
    /**
-    * TODO
+    * Credentials for current login and JClouds BlobStore.
     */
    CloudStoreConfigurationBuilder credential(String credential);
 
    /**
-    * TODO
+    * BlobStore container name. Actual container name will be construct $conatinerName_$cacheName.
     */
    CloudStoreConfigurationBuilder container(String container);
 
