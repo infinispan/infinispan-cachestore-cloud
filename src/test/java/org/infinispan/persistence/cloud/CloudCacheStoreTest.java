@@ -21,7 +21,8 @@ public class CloudCacheStoreTest<K, V> extends BaseStoreTest {
             .location("test-location")
             .identity("me")
             .credential("s3cr3t")
-            .container("test-container");
+            .container("test-container")
+            .compress(true);
       cs.init(createContext(cfgBuilder.build()));
       return cs;
    }

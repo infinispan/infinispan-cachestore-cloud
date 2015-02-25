@@ -4,6 +4,7 @@ import static org.infinispan.test.TestingUtil.INFINISPAN_END_TAG;
 import static org.infinispan.test.TestingUtil.InfinispanStartTag;
 import static org.infinispan.test.TestingUtil.withCacheManager;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -33,7 +34,7 @@ public class XmlFileParsingTest<K, V> extends AbstractInfinispanTest {
             "<cache-container default-cache=\"default\">" +
             "   <local-cache name=\"default\">\n" +
             "      <persistence passivation=\"false\"> \n" +
-            "         <cloud-store xmlns=\"urn:infinispan:config:store:cloud:7.2\" provider=\"transient\" location=\"test-location\" identity=\"me\" credential=\"s3cr3t\" container=\"test-container\" />\n" +
+            "         <cloud-store xmlns=\"urn:infinispan:config:store:cloud:7.2\" provider=\"transient\" location=\"test-location\" identity=\"me\" credential=\"s3cr3t\" container=\"test-container\" compress=\"true\" />\n" +
             "      </persistence>\n" +
             "   </local-cache>\n" +
             "</cache-container>" +
@@ -53,6 +54,7 @@ public class XmlFileParsingTest<K, V> extends AbstractInfinispanTest {
             assertEquals(store.getConfiguration().identity(), "me");
             assertEquals(store.getConfiguration().credential(), "s3cr3t");
             assertEquals(store.getConfiguration().container(), "test-container");
+            assertTrue(store.getConfiguration().compress());
          }
       });
    }

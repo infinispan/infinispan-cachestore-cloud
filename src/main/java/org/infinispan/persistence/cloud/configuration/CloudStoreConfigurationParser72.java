@@ -102,6 +102,10 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
             builder.key2StringMapper(value);
             break;
          }
+         case COMPRESS: {
+            builder.compress(Boolean.parseBoolean(value));
+            break;
+         }
          default: {
             Parser71.parseStoreAttribute(reader, i, builder);
             break;

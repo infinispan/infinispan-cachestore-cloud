@@ -51,4 +51,9 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
    public CloudStoreConfigurationBuilder key2StringMapper(Class<? extends MarshallingTwoWayKey2StringMapper> klass) {
       return builder.key2StringMapper(klass);
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder compress(boolean compress) {
+      return builder.compress(compress);
+   }
 }

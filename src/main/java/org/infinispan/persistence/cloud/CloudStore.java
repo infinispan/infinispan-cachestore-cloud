@@ -1,5 +1,7 @@
 package org.infinispan.persistence.cloud;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.infinispan.commons.util.Util;
 import org.infinispan.executors.ExecutorAllCompletionService;
@@ -29,6 +33,7 @@ import org.infinispan.persistence.spi.AdvancedLoadWriteStore;
 import org.infinispan.persistence.spi.InitializationContext;
 import org.infinispan.persistence.spi.PersistenceException;
 import org.infinispan.util.logging.LogFactory;
+import org.infinispan.util.stream.Streams;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
@@ -41,6 +46,7 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
 
+import com.google.common.hash.HashCode;
 import com.google.common.io.ByteSource;
 import com.google.common.net.MediaType;
 
@@ -130,15 +136,16 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       return initializationContext.getMarshaller().objectToByteBuffer(entry.getValue());
    }
 
-   private Object unmarshall(InputStream stream) throws IOException, ClassNotFoundException {
-      return initializationContext.getMarshaller().objectFromInputStream(stream);
+   private Object unmarshall(byte[] bytearray) throws IOException, ClassNotFoundException {
+      return initializationContext.getMarshaller().objectFromByteBuffer(bytearray);
    }
 
    @Override
    public void write(MarshalledEntry<? extends K, ? extends V> entry) {
       String objectName = encodeKey(entry.getKey());
       try {
-         ByteSource payload = ByteSource.wrap(marshall(entry));
+         byte[] entryBytes =  configuration.compress() ? compress(marshall(entry)) : marshall(entry);
+         ByteSource payload = ByteSource.wrap(entryBytes);
          Date expiresDate = null;
 
          InternalMetadata metadata = entry.getMetadata();
@@ -157,6 +164,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
                   .expires(expiresDate)
                   .userMetadata(ispnMetadata)
                   .build();
+         
          blobStore.putBlob(containerName, blob);
       } catch (Exception e) {
          throw new PersistenceException(e);
@@ -194,6 +202,26 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
          return null;
       }
       
+      final byte[] payloadByteArray;
+      try {
+         ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         Streams.copy(blob.getPayload().openStream(), bos);
+         final byte[] payloadRaw = bos.toByteArray();
+         
+         HashCode expectedHashCode = blob.getMetadata().getContentMetadata().getContentMD5AsHashCode();
+         // not all blobstores support md5 on GET request
+         if (expectedHashCode != null){
+            HashCode actualHash = HashCode.fromBytes(payloadRaw);
+            if(expectedHashCode.equals(actualHash)) {
+               throw new PersistenceException("MD5 hash failed when reading data from " + blob.getMetadata().getName());
+            }
+         }
+         
+         payloadByteArray = configuration.compress() ? uncompress(payloadRaw) : payloadRaw;
+      } catch(Exception e) {
+         throw new PersistenceException(e);
+      }
+      
       Map<String, String> ispnMetadata = blob.getMetadata().getUserMetadata();
       Date expiresDate = blobMetadata.getContentMetadata().getExpires();
       long ttl = -1, maxIdle = -1, now = initializationContext.getTimeService().wallClockTime();
@@ -217,7 +245,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       
       try {
          return initializationContext.getMarshalledEntryFactory().newMarshalledEntry(key,
-               unmarshall(blob.getPayload().openStream()), internalMetadata);
+               unmarshall(payloadByteArray), internalMetadata);
       } catch (Exception e) {
          throw new PersistenceException(e);
       }
@@ -385,5 +413,37 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       
       return (et > -1 && et < now) ? true : false;
    }
+   
+   private byte[] uncompress(byte[] compressedByteArray) throws IOException, PersistenceException {
+      ByteArrayInputStream bis = new ByteArrayInputStream(compressedByteArray);
+
+      GZIPInputStream is = new GZIPInputStream(bis);
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      Streams.copy(is, bos);
+      final byte[] uncompressedByteArray = bos.toByteArray();
+
+      is.close();
+      bis.close();
+      bos.close();
+      return uncompressedByteArray;
+   }
+
+   private byte[] compress(final byte[] uncompressedByteArray) throws IOException {
+      InputStream input = new ByteArrayInputStream(uncompressedByteArray);
+      
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      GZIPOutputStream output = new GZIPOutputStream(baos);
+
+      Streams.copy(input, output);
+      output.close();
+      input.close();
+
+      final byte[] compressedByteArray = baos.toByteArray();
+
+      baos.close();
+
+      return compressedByteArray;
+   }
+
 
 }
