@@ -18,7 +18,8 @@ public class CloudCacheStoreFunctionalTest extends BaseStoreFunctionalTest {
             .location("test-location")
             .identity("me")
             .credential("s3cr3t")
-            .container("test-container");
+            .container("test-container")
+            .compress(true);
       return persistence;
    }
    

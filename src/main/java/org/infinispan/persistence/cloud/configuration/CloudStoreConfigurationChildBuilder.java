@@ -47,4 +47,9 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
     * RESTful retrieval/storage. Defaults to {@link org.infinispan.persistence.keymappers.MarshalledValueOrPrimitiveMapper}
     */
    CloudStoreConfigurationBuilder key2StringMapper(Class<? extends MarshallingTwoWayKey2StringMapper> klass);
+   
+   /**
+    * Payload compression option - if true, payload will be compressed before passed to BlobStore.
+    */
+   CloudStoreConfigurationBuilder compress(boolean compress);
 }

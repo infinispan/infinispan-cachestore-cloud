@@ -20,6 +20,7 @@ public enum Attribute {
    CREDENTIAL("credential"),
    CONTAINER("container"),
    KEY_TO_STRING_MAPPER("key-to-string-mapper"),
+   COMPRESS("compress")
    ;
 
    private final String name;

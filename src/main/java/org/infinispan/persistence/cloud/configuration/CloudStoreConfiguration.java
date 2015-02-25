@@ -24,12 +24,13 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    private final String credential;
    private final String container;
    private final String key2StringMapper;
+   private final boolean compress;
 
    public CloudStoreConfiguration(boolean purgeOnStartup, boolean fetchPersistentState, boolean ignoreModifications,
                                    AsyncStoreConfiguration async, SingletonStoreConfiguration singletonStore,
                                    boolean preload, boolean shared, Properties properties,
                                    String provider, String location, String identity, String credential,
-                                   String container, String key2StringMapper) {
+                                   String container, String key2StringMapper, boolean compress) {
       super(purgeOnStartup, fetchPersistentState, ignoreModifications, async, singletonStore, preload, shared, properties);
       this.provider = provider;
       this.location = location;
@@ -37,6 +38,7 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
       this.credential = credential;
       this.container = container;
       this.key2StringMapper = key2StringMapper;
+      this.compress = compress;
    }
 
    public String provider() {
@@ -61,5 +63,9 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
 
    public String key2StringMapper() {
       return key2StringMapper;
+   }
+   
+   public boolean compress() {
+      return compress;
    }
 }
