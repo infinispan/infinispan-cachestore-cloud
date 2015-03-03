@@ -32,7 +32,7 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
    CloudStoreConfigurationBuilder credential(String credential);
 
    /**
-    * BlobStore container name. Actual container name will be construct $conatinerName_$cacheName.
+    * BlobStore container name. Actual container name will be construct $containerName_$cacheName.
     */
    CloudStoreConfigurationBuilder container(String container);
 
