@@ -1,5 +1,7 @@
 package org.infinispan.persistence.cloud.configuration;
 
+import java.util.Properties;
+
 import org.infinispan.configuration.cache.AbstractStoreConfigurationBuilder;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
 import org.infinispan.persistence.cloud.CloudStore;
@@ -24,8 +26,10 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    private String identity;
    private String credential;
    private String container;
+   private String endpoint;
    private String key2StringMapper = MarshalledValueOrPrimitiveMapper.class.getName();
    private boolean compress;
+   private Properties overrides;
 
    public CloudStoreConfigurationBuilder(PersistenceConfigurationBuilder builder) {
       super(builder);
@@ -65,6 +69,12 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       this.container = container;
       return this;
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder endpoint(String endpoint) {
+      this.endpoint = endpoint;
+      return this;
+   }
 
    @Override
    public CloudStoreConfigurationBuilder key2StringMapper(String key2StringMapper) {
@@ -83,12 +93,19 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       this.compress = compress;
       return this;
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder overrides(Properties overrides) {
+      this.overrides = overrides;
+      return this;
+   }
 
    @Override
    public CloudStoreConfiguration create() {
       return new CloudStoreConfiguration(purgeOnStartup, fetchPersistentState, ignoreModifications, async.create(),
                                          singletonStore.create(), preload, shared, properties,
-                                         provider, location, identity, credential, container, key2StringMapper, compress);
+                                         provider, location, identity, credential, container, endpoint, key2StringMapper, 
+                                         compress, overrides);
    }
 
    @Override
@@ -98,8 +115,10 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       this.identity = template.identity();
       this.credential = template.credential();
       this.container = template.container();
+      this.endpoint = template.endpoint();
       this.key2StringMapper = template.key2StringMapper();
       this.compress = template.compress();
+      this.overrides = template.overrides();
 
       // AbstractStore-specific configuration
       fetchPersistentState = template.fetchPersistentState();

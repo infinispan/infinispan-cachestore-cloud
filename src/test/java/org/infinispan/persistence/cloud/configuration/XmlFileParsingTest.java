@@ -34,7 +34,7 @@ public class XmlFileParsingTest<K, V> extends AbstractInfinispanTest {
             "<cache-container default-cache=\"default\">" +
             "   <local-cache name=\"default\">\n" +
             "      <persistence passivation=\"false\"> \n" +
-            "         <cloud-store xmlns=\"urn:infinispan:config:store:cloud:7.2\" provider=\"transient\" location=\"test-location\" identity=\"me\" credential=\"s3cr3t\" container=\"test-container\" compress=\"true\" />\n" +
+            "         <cloud-store xmlns=\"urn:infinispan:config:store:cloud:7.2\" provider=\"transient\" location=\"test-location\" identity=\"me\" credential=\"s3cr3t\" container=\"test-container\" endpoint=\"http://test.endpoint\" compress=\"true\" overrides=\"key1=val1, key2=val2\" />\n" +
             "      </persistence>\n" +
             "   </local-cache>\n" +
             "</cache-container>" +
@@ -54,7 +54,10 @@ public class XmlFileParsingTest<K, V> extends AbstractInfinispanTest {
             assertEquals(store.getConfiguration().identity(), "me");
             assertEquals(store.getConfiguration().credential(), "s3cr3t");
             assertEquals(store.getConfiguration().container(), "test-container");
+            assertEquals(store.getConfiguration().endpoint(), "http://test.endpoint");
             assertTrue(store.getConfiguration().compress());
+            assertEquals(store.getConfiguration().overrides().get("key1"), "val1");
+            assertEquals(store.getConfiguration().overrides().get("key2"), "val2");
          }
       });
    }
