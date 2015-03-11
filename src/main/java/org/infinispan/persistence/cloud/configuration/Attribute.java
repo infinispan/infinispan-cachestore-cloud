@@ -19,8 +19,10 @@ public enum Attribute {
    IDENTITY("identity"),
    CREDENTIAL("credential"),
    CONTAINER("container"),
+   ENDPOINT("endpoint"),
    KEY_TO_STRING_MAPPER("key-to-string-mapper"),
-   COMPRESS("compress")
+   COMPRESS("compress"),
+   OVERRIDES("overrides")
    ;
 
    private final String name;

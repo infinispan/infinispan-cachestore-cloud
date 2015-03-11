@@ -46,6 +46,13 @@
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
+          <xs:attribute name="endpoint" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>
+                URL of blob store API endpoint
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
           <xs:attribute name="key2StringMapper" type="xs:string" default="org.infinispan.persistence.keymappers.MarshalledValueOrPrimitiveMapper">
             <xs:annotation>
               <xs:documentation>
@@ -58,6 +65,13 @@
             <xs:annotation>
               <xs:documentation>
                  Payload compression option - if true, payload will be compressed before passed to BlobStore.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="overrides" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>
+                 Additional properties which can be use to additional configuration of specified blobstore. Comma separated list of properties.
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>

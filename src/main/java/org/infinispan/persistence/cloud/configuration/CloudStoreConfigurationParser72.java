@@ -2,6 +2,8 @@ package org.infinispan.persistence.cloud.configuration;
 
 import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperties;
 
+import java.util.Properties;
+
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
@@ -32,6 +34,8 @@ import org.kohsuke.MetaInfServices;
 public class CloudStoreConfigurationParser72 implements ConfigurationParser {
 
    public static final String ROOT_ELEMENT = "cloud-store";
+   public static final String OVERRIDES_SEPARATOR = ",";
+   public static final String PROPERTY_SEPARATOR = "=";
    
    public CloudStoreConfigurationParser72() {
    }
@@ -98,12 +102,24 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
             builder.container(value);
             break;
          }
+         case ENDPOINT: {
+            builder.endpoint(value);
+            break;
+         }
          case KEY_TO_STRING_MAPPER: {
             builder.key2StringMapper(value);
             break;
          }
          case COMPRESS: {
             builder.compress(Boolean.parseBoolean(value));
+            break;
+         }
+         case OVERRIDES: {
+            try {
+               builder.overrides(parseProperties(value));
+            } catch(IllegalArgumentException e) {
+               ParseUtils.invalidAttributeValue(reader, i);
+            }
             break;
          }
          default: {
@@ -117,5 +133,22 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
    @Override
    public Namespace[] getNamespaces() {
       return ParseUtils.getNamespaceAnnotations(getClass());
+   }
+   
+   private Properties parseProperties(String properties) throws IllegalArgumentException {
+      if (properties == null || properties.isEmpty())
+         return null;
+      
+      Properties overrides = new Properties();
+      String[] props = properties.split(OVERRIDES_SEPARATOR);
+      for(String prop : props) {
+         String[] keyVal = prop.split(PROPERTY_SEPARATOR);
+         if (keyVal.length != 2 || keyVal[0] == null || keyVal[1] == null)
+            throw new IllegalArgumentException();
+         
+         overrides.put(keyVal[0].trim(), keyVal[1].trim());
+      }
+      
+      return overrides;
    }
 }

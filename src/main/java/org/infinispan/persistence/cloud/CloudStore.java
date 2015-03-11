@@ -97,9 +97,13 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
             .getAdvancedCache().getClassLoader());
       key2StringMapper.setMarshaller(initializationContext.getMarshaller());
 
-      blobStoreContext = ContextBuilder.newBuilder(configuration.provider())
-            .credentials(configuration.identity(), configuration.credential())
-            .buildView(BlobStoreContext.class);
+      ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.provider()).credentials(configuration.identity(), configuration.credential());
+      if(configuration.overrides() != null)
+         contextBuilder.overrides(configuration.overrides());
+      if(configuration.endpoint() != null && !configuration.endpoint().isEmpty())
+         contextBuilder.endpoint(configuration.endpoint());
+         
+      blobStoreContext = contextBuilder.buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
       containerName = String.format("%s-%s", configuration.container(), initializationContext.getCache().getName());

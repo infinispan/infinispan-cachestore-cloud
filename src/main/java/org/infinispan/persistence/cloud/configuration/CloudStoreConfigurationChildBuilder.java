@@ -1,5 +1,7 @@
 package org.infinispan.persistence.cloud.configuration;
 
+import java.util.Properties;
+
 import org.infinispan.configuration.cache.StoreConfigurationChildBuilder;
 import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
 
@@ -35,6 +37,11 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
     * BlobStore container name. Actual container name will be construct $conatinerName_$cacheName.
     */
    CloudStoreConfigurationBuilder container(String container);
+   
+   /**
+    * URL of blob store API endpoint
+    */
+   CloudStoreConfigurationBuilder endpoint(String endpoint);
 
    /**
     * The class name of a {@link org.infinispan.persistence.keymappers.Key2StringMapper} to use for mapping keys to strings suitable for
@@ -52,4 +59,10 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
     * Payload compression option - if true, payload will be compressed before passed to BlobStore.
     */
    CloudStoreConfigurationBuilder compress(boolean compress);
+   
+   /**
+    * Additional properties which can be use to additional configuration of specified blobstore.
+    * Comma separated list of properties.
+    */
+   CloudStoreConfigurationBuilder overrides(Properties overrides);
 }

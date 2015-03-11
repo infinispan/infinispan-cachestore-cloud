@@ -1,5 +1,7 @@
 package org.infinispan.persistence.cloud.configuration;
 
+import java.util.Properties;
+
 import org.infinispan.configuration.cache.AbstractStoreConfigurationChildBuilder;
 import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
 
@@ -41,6 +43,11 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
    public CloudStoreConfigurationBuilder container(String container) {
       return builder.location(container);
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder endpoint(String endpoint) {
+      return builder.endpoint(endpoint);
+   }
 
    @Override
    public CloudStoreConfigurationBuilder key2StringMapper(String key2StringMapper) {
@@ -55,5 +62,10 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
    @Override
    public CloudStoreConfigurationBuilder compress(boolean compress) {
       return builder.compress(compress);
+   }
+   
+   @Override
+   public CloudStoreConfigurationBuilder overrides(Properties overrides) {
+      return builder.overrides(overrides);
    }
 }
