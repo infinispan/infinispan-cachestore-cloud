@@ -41,6 +41,7 @@ import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.BlobMetadata;
 import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
+import org.jclouds.blobstore.domain.StorageType;
 import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
@@ -340,17 +341,18 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
          Iterator<? extends StorageMetadata> storageMetadataIterator = pageSet.iterator();
          while (storageMetadataIterator.hasNext()) {
             StorageMetadata storageMetadata = storageMetadataIterator.next();
+            if(storageMetadata.getType().equals(StorageType.BLOB)) {
+                 Blob blob = blobStore.getBlob(containerName, storageMetadata.getName());
+                 BlobMetadata blobMetadata = blob.getMetadata();
 
-            Blob blob = blobStore.getBlob(containerName, storageMetadata.getName());
-            BlobMetadata blobMetadata = blob.getMetadata();
-
-            if (isExpired(blobMetadata)) {
-               entries.add(storageMetadata.getName());
-               if (entries.size() == BATCH_SIZE) {
-                  final Set<String> batch = entries;
-                  entries = new HashSet<String>(BATCH_SIZE);
-                  submitPurgeTask(eacs, batch, purgeListener);
-               }
+                 if (isExpired(blobMetadata)) {
+                     entries.add(storageMetadata.getName());
+                     if (entries.size() == BATCH_SIZE) {
+                         final Set<String> batch = entries;
+                         entries = new HashSet<String>(BATCH_SIZE);
+                         submitPurgeTask(eacs, batch, purgeListener);
+                     }
+                 }
             }
          }
 
