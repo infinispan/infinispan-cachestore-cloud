@@ -1,26 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-persistence-parent</artifactId>
-        <version>7.1.1.Final</version>
-    </parent>
+
+    <groupId>org.infinispan</groupId>
     <artifactId>infinispan-cachestore-cloud</artifactId>
+    <version>8.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Infinispan CloudCacheStore</name>
     <description>Infinispan CloudCacheStore module</description>
 
+    <organization>
+        <name>JBoss, a division of Red Hat</name>
+        <url>http://www.jboss.org</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>placeholder</id>
+            <name>See http://infinispan.org for a complete list of contributors</name>
+        </developer>
+    </developers>
+
+    <mailingLists>
+        <mailingList>
+            <name>Infinispan Issues</name>
+            <subscribe>https://lists.jboss.org/mailman/listinfo/infinispan-issues</subscribe>
+            <unsubscribe>https://lists.jboss.org/mailman/listinfo/infinispan-issues</unsubscribe>
+            <post>infinispan-issues@lists.jboss.org</post>
+            <archive>http://lists.jboss.org/pipermail/infinispan-issues/</archive>
+        </mailingList>
+        <mailingList>
+            <name>Infinispan Developers</name>
+            <subscribe>https://lists.jboss.org/mailman/listinfo/infinispan-dev</subscribe>
+            <unsubscribe>https://lists.jboss.org/mailman/listinfo/infinispan-dev</unsubscribe>
+            <post>infinispan-dev@lists.jboss.org</post>
+            <archive>http://lists.jboss.org/pipermail/infinispan-dev/</archive>
+        </mailingList>
+    </mailingLists>
+
+    <issueManagement>
+        <system>jira</system>
+        <url>https://issues.jboss.org/browse/ISPN</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:git@github.com:infinispan/infinispan-cachestore-cloud.git</connection>
+        <developerConnection>scm:git:git@github.com:infinispan/infinispan-cachestore-cloud.git</developerConnection>
+        <url>https://github.com/infinispan/infinispan-cachestore-cloud</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>jboss-releases-repository</id>
+            <name>JBoss Release Repository</name>
+            <url>${jboss.releases.repo.url}</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>jboss-snapshots-repository</id>
+            <name>JBoss Snapshot Repository</name>
+            <url>${jboss.snapshots.repo.url}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <properties>
-        <version.jclouds>1.8.1</version.jclouds>
-        <version.guava>17.0</version.guava> <!-- overwrite guava version from ISPN parent to version which JClouds depends on-->
-        <version.metainf-services>1.5</version.metainf-services>
+        <jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2</jboss.releases.repo.url>
+        <jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots</jboss.snapshots.repo.url>
+        <version.infinispan>8.2.3.Final</version.infinispan>
+        <version.jclouds>1.9.2</version.jclouds>
+        <version.jboss.logging.processor>1.1.0.Final</version.jboss.logging.processor>
+        <version.guava>17.0</version.guava>
+        <version.metainf-services>1.7</version.metainf-services>
+        <version.junit>4.12</version.junit>
+        <version.mockito>1.10.19</version.mockito>
+        <version.testng>6.9.10</version.testng>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>infinispan-core</artifactId>
+            <version>${version.infinispan}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>
@@ -38,20 +107,93 @@
             <artifactId>guava</artifactId>
             <version>${version.guava}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-processor</artifactId>
+            <version>${version.jboss.logging.processor}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <version>${version.infinispan}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${version.mockito}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${version.testng}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.5.4</version>
+                <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <Export-Package>
                             ${project.groupId}.persistence.cloud.*;version=${project.version};-split-package:=error
                         </Export-Package>
+                        <Include-Resource>
+                            {maven-resources},
+                            /META-INF/services=${project.basedir}/target/classes/META-INF/services
+                        </Include-Resource>
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <inherited>true</inherited>
             </plugin>
         </plugins>
     </build>

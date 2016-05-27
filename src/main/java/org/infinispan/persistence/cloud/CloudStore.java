@@ -58,7 +58,7 @@ import com.google.common.net.MediaType;
  * href="http://www.rackspacecloud.com/cloud_hosting_products/files">Rackspace's Cloudfiles</a>, or
  * any other such provider supported by JClouds.
  * <p/>
- * 
+ *
  * @author Manik Surtani
  * @author Adrian Cole
  * @author Damiano Albani
@@ -72,7 +72,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
    protected static final String MAX_IDLE = "metadata_max_idle";
    protected static final String EXPIRE_TIME = "expire_time";
    protected static final int BATCH_SIZE = 1000;
-   
+
    private CloudStoreConfiguration configuration;
    private InitializationContext initializationContext;
 
@@ -103,7 +103,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
          contextBuilder.overrides(configuration.overrides());
       if(configuration.endpoint() != null && !configuration.endpoint().isEmpty())
          contextBuilder.endpoint(configuration.endpoint());
-         
+
       blobStoreContext = contextBuilder.buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
@@ -112,11 +112,11 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       if (!blobStore.containerExists(containerName)) {
          Location location = new LocationBuilder()
                .scope(LocationScope.REGION)
-               .id(configuration.location()) 
+               .id(configuration.location())
                .description(String.format("Infinispan cache store for %s", containerName))
                .build();
          blobStore.createContainerInLocation(location, containerName);
-         
+
          //make sure container is created
          if(!blobStore.containerExists(containerName)) {
             throw new PersistenceException(String.format("Unable to create blob container %s", containerName));
@@ -169,7 +169,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
                   .expires(expiresDate)
                   .userMetadata(ispnMetadata)
                   .build();
-         
+
          blobStore.putBlob(containerName, blob);
       } catch (Exception e) {
          throw new PersistenceException(e);
@@ -201,18 +201,18 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       }
 
       BlobMetadata blobMetadata = blob.getMetadata();
-      
+
       if(isExpired(blobMetadata)) {
          blobStore.removeBlob(containerName, objectName);
          return null;
       }
-      
+
       final byte[] payloadByteArray;
       try {
          ByteArrayOutputStream bos = new ByteArrayOutputStream();
          Streams.copy(blob.getPayload().openStream(), bos);
          final byte[] payloadRaw = bos.toByteArray();
-         
+
          HashCode expectedHashCode = blob.getMetadata().getContentMetadata().getContentMD5AsHashCode();
          // not all blobstores support md5 on GET request
          if (expectedHashCode != null){
@@ -221,19 +221,19 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
                throw new PersistenceException("MD5 hash failed when reading data from " + blob.getMetadata().getName());
             }
          }
-         
+
          payloadByteArray = configuration.compress() ? uncompress(payloadRaw) : payloadRaw;
       } catch(Exception e) {
          throw new PersistenceException(e);
       }
-      
+
       Map<String, String> ispnMetadata = blob.getMetadata().getUserMetadata();
       Date expiresDate = blobMetadata.getContentMetadata().getExpires();
       long ttl = -1, maxIdle = -1, now = initializationContext.getTimeService().wallClockTime();
 
       if (ispnMetadata != null) {
          try {
-            ttl = ispnMetadata.containsKey(LIFESPAN) ? Long.parseLong(ispnMetadata.get(LIFESPAN)) : -1; 
+            ttl = ispnMetadata.containsKey(LIFESPAN) ? Long.parseLong(ispnMetadata.get(LIFESPAN)) : -1;
             maxIdle = ispnMetadata.containsKey(MAX_IDLE) ? Long.parseLong(ispnMetadata.get(MAX_IDLE)) : -1;
          } catch(NumberFormatException e) {
             //NO-OP default to -1 value
@@ -247,7 +247,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       Metadata metadata = new EmbeddedMetadata.Builder().lifespan(ttl, TimeUnit.MILLISECONDS)
             .maxIdle(maxIdle, TimeUnit.MILLISECONDS).build();
       InternalMetadata internalMetadata = new InternalMetadataImpl(metadata, now, now);
-      
+
       try {
          return initializationContext.getMarshalledEntryFactory().newMarshalledEntry(key,
                unmarshall(payloadByteArray), internalMetadata);
@@ -395,8 +395,20 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
    @Override
    public boolean contains(Object key) {
       String objectName = encodeKey(key);
+      Blob blob = blobStore.getBlob(containerName, objectName);
 
-      return blobStore.blobExists(containerName, objectName);
+      if (blob == null) {
+         return false;
+      }
+
+      BlobMetadata blobMetadata = blob.getMetadata();
+
+      if(isExpired(blobMetadata)) {
+         blobStore.removeBlob(containerName, objectName);
+         return false;
+      } else {
+         return true;
+      }
    }
 
    protected boolean isExpired(BlobMetadata blobMetadata) {
@@ -416,10 +428,10 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
          if (blobMetadata.getContentMetadata().getExpires() != null)
             et = blobMetadata.getContentMetadata().getExpires().getTime();
       }
-      
-      return (et > -1 && et < now) ? true : false;
+
+      return (et > -1 && et < now);
    }
-   
+
    private byte[] uncompress(byte[] compressedByteArray) throws IOException, PersistenceException {
       ByteArrayInputStream bis = new ByteArrayInputStream(compressedByteArray);
 
@@ -436,7 +448,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
 
    private byte[] compress(final byte[] uncompressedByteArray) throws IOException {
       InputStream input = new ByteArrayInputStream(uncompressedByteArray);
-      
+
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       GZIPOutputStream output = new GZIPOutputStream(baos);
 

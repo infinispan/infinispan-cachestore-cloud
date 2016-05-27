@@ -33,11 +33,15 @@ public class CloudCacheStoreTest<K, V> extends BaseStoreTest {
       store.start();
       return store;
    }
-   
+
    @Override
    @Test(enabled = false, description = "Disabled until update to JClouds 2.0, where JCLOUDS-658 is fixed and filestore can be used for tests")
    public void testStopStartDoesNotNukeValues() throws InterruptedException, PersistenceException {
       //NO-OP
    }
 
+   @Override
+   protected boolean storePurgesAllExpired() {
+      return false;
+   }
 }

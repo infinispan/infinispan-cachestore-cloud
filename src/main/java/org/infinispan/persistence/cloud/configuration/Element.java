@@ -16,7 +16,7 @@ public enum Element {
     // must be first
     UNKNOWN(null),
 
-    CLOUD_STORE(CloudStoreConfigurationParser72.ROOT_ELEMENT),
+    CLOUD_STORE(CloudStoreConfigurationParser.ROOT_ELEMENT),
     ;
 
     private final String name;

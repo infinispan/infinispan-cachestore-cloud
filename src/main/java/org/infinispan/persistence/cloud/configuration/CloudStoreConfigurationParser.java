@@ -1,12 +1,5 @@
 package org.infinispan.persistence.cloud.configuration;
 
-import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperties;
-
-import java.util.Properties;
-
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
@@ -14,30 +7,38 @@ import org.infinispan.configuration.parsing.ConfigurationParser;
 import org.infinispan.configuration.parsing.Namespace;
 import org.infinispan.configuration.parsing.Namespaces;
 import org.infinispan.configuration.parsing.ParseUtils;
-import org.infinispan.configuration.parsing.Parser71;
+import org.infinispan.configuration.parsing.Parser;
 import org.infinispan.configuration.parsing.XMLExtendedStreamReader;
 import org.kohsuke.MetaInfServices;
+
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import java.util.Properties;
+
+import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperties;
 
 
 /**
 *
-* CloudStoreConfigurationParser71.
-* 
+* CloudStoreConfigurationParser
+*
 * @since 7.2
 */
 @MetaInfServices
 @Namespaces({
+      @Namespace(uri = "urn:infinispan:config:store:cloud:8.0",
+            root = CloudStoreConfigurationParser.ROOT_ELEMENT),
       @Namespace(uri = "urn:infinispan:config:store:cloud:7.2",
-                 root = CloudStoreConfigurationParser72.ROOT_ELEMENT),
-      @Namespace(root = CloudStoreConfigurationParser72.ROOT_ELEMENT)
+                 root = CloudStoreConfigurationParser.ROOT_ELEMENT),
+      @Namespace(root = CloudStoreConfigurationParser.ROOT_ELEMENT)
 })
-public class CloudStoreConfigurationParser72 implements ConfigurationParser {
+public class CloudStoreConfigurationParser implements ConfigurationParser {
 
    public static final String ROOT_ELEMENT = "cloud-store";
    public static final String OVERRIDES_SEPARATOR = ",";
    public static final String PROPERTY_SEPARATOR = "=";
-   
-   public CloudStoreConfigurationParser72() {
+
+   public CloudStoreConfigurationParser() {
    }
 
    @Override
@@ -66,7 +67,7 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
          Element element = Element.forName(reader.getLocalName());
          switch (element) {
          default: {
-            Parser71.parseStoreElement(reader, builder);
+            Parser.parseStoreElement(reader, builder);
             break;
          }
          }
@@ -123,7 +124,7 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
             break;
          }
          default: {
-            Parser71.parseStoreAttribute(reader, i, builder);
+            Parser.parseStoreAttribute(reader, i, builder);
             break;
          }
          }
@@ -134,21 +135,21 @@ public class CloudStoreConfigurationParser72 implements ConfigurationParser {
    public Namespace[] getNamespaces() {
       return ParseUtils.getNamespaceAnnotations(getClass());
    }
-   
+
    private Properties parseProperties(String properties) throws IllegalArgumentException {
       if (properties == null || properties.isEmpty())
          return null;
-      
+
       Properties overrides = new Properties();
       String[] props = properties.split(OVERRIDES_SEPARATOR);
       for(String prop : props) {
          String[] keyVal = prop.split(PROPERTY_SEPARATOR);
          if (keyVal.length != 2 || keyVal[0] == null || keyVal[1] == null)
             throw new IllegalArgumentException();
-         
+
          overrides.put(keyVal[0].trim(), keyVal[1].trim());
       }
-      
+
       return overrides;
    }
 }
