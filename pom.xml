@@ -4,7 +4,7 @@
 
     <groupId>org.infinispan</groupId>
     <artifactId>infinispan-cachestore-cloud</artifactId>
-    <version>8.0.1-SNAPSHOT</version>
+    <version>8.0.1.Final</version>
     <packaging>bundle</packaging>
     <name>Infinispan CloudCacheStore</name>
     <description>Infinispan CloudCacheStore module</description>
