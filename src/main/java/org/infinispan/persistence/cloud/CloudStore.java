@@ -110,11 +110,14 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       containerName = String.format("%s-%s", configuration.container(), initializationContext.getCache().getName());
 
       if (!blobStore.containerExists(containerName)) {
-         Location location = new LocationBuilder()
+         Location location = null;
+         if (configuration.location() != null ) {
+            location = new LocationBuilder()
                .scope(LocationScope.REGION)
                .id(configuration.location())
                .description(String.format("Infinispan cache store for %s", containerName))
                .build();
+         }
          blobStore.createContainerInLocation(location, containerName);
 
          //make sure container is created
