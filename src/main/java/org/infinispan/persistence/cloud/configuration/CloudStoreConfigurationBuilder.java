@@ -137,9 +137,6 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       if (provider == null) {
          throw log.providerNotSpecified();
       }
-      if (location == null) {
-         throw log.locationNotSpecified();
-      }
       if (identity == null) {
          throw log.identityNotSpecified();
       }
