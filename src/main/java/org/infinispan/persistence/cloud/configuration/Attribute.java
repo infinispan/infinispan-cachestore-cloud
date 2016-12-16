@@ -22,7 +22,8 @@ public enum Attribute {
    ENDPOINT("endpoint"),
    KEY_TO_STRING_MAPPER("key-to-string-mapper"),
    COMPRESS("compress"),
-   OVERRIDES("overrides")
+   OVERRIDES("overrides"),
+   NORMALIZE_CACHE_NAMES("normalize-cache-names")
    ;
 
    private final String name;

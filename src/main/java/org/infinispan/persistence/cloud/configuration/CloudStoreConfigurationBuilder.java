@@ -30,6 +30,7 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
    private String key2StringMapper = MarshalledValueOrPrimitiveMapper.class.getName();
    private boolean compress;
    private Properties overrides;
+   private boolean normalizeCacheNames;
 
    public CloudStoreConfigurationBuilder(PersistenceConfigurationBuilder builder) {
       super(builder);
@@ -99,13 +100,19 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       this.overrides = overrides;
       return this;
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder normalizeCacheNames(boolean normalizeCacheNames) {
+      this.normalizeCacheNames = normalizeCacheNames;
+      return this;
+   }
 
    @Override
    public CloudStoreConfiguration create() {
       return new CloudStoreConfiguration(purgeOnStartup, fetchPersistentState, ignoreModifications, async.create(),
                                          singletonStore.create(), preload, shared, properties,
                                          provider, location, identity, credential, container, endpoint, key2StringMapper, 
-                                         compress, overrides);
+                                         compress, overrides, normalizeCacheNames);
    }
 
    @Override
@@ -119,6 +126,7 @@ implements CloudStoreConfigurationChildBuilder<CloudStoreConfigurationBuilder> {
       this.key2StringMapper = template.key2StringMapper();
       this.compress = template.compress();
       this.overrides = template.overrides();
+      this.normalizeCacheNames = template.normalizeCacheNames();
 
       // AbstractStore-specific configuration
       fetchPersistentState = template.fetchPersistentState();

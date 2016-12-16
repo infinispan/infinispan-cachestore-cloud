@@ -107,7 +107,10 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       blobStoreContext = contextBuilder.buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
-      containerName = String.format("%s-%s", configuration.container(), initializationContext.getCache().getName().toLowerCase());
+      String cacheName = configuration.normalizeCacheNames() ? 
+            initializationContext.getCache().getName().replaceAll("[^a-zA-Z0-9-]", "-") 
+            : initializationContext.getCache().getName();
+      containerName = String.format("%s-%s", configuration.container(), cacheName);
 
       if (!blobStore.containerExists(containerName)) {
          Location location = null;

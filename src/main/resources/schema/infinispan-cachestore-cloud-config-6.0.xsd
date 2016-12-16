@@ -75,6 +75,15 @@
               </xs:documentation>
             </xs:annotation>
           </xs:attribute>
+          <xs:attribute name="normalize-cache-names" type="xs:boolean" default="false">
+            <xs:annotation>
+              <xs:documentation>
+                 When turned on, all non-aplhanumeric and non-digit characters in names of the caches will be
+                 replaced by dash, e.g. ___defaultcache will be converted to ---defaultcache.
+                 Normalized cache name will be used for construction of cloud container name in for $CONTAINER-$NORMALIZED_CACHE_NAME.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>

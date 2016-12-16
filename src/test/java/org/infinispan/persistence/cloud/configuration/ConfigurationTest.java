@@ -25,7 +25,8 @@ public class ConfigurationTest {
             .container("test-container")
             .endpoint("http://test.endpoint")
             .compress(true)
-            .overrides(props);
+            .overrides(props)
+            .normalizeCacheNames(true);
       
             
       Configuration configuration = b.build();
@@ -39,6 +40,7 @@ public class ConfigurationTest {
       assertTrue(store.compress());
       assertEquals(store.overrides().get("key1"), "val1");
       assertEquals(store.overrides().get("key2"), "val2");
+      assertTrue(store.normalizeCacheNames());
 
       b = new ConfigurationBuilder();
       b.persistence().addStore(CloudStoreConfigurationBuilder.class).read(store);
@@ -46,13 +48,15 @@ public class ConfigurationTest {
       CloudStoreConfiguration store2 = (CloudStoreConfiguration) configuration2.persistence().stores()
             .get(0);
       assertEquals(store2.provider(), "transient");
-      assertEquals(store.location(), "test-location");
+      assertEquals(store2.location(), "test-location");
       assertEquals(store2.identity(), "me");
       assertEquals(store2.credential(), "s3cr3t");
-      assertEquals(store.container(), "test-container");
-      assertEquals(store.endpoint(), "http://test.endpoint");
-      assertTrue(store.compress());
-      assertEquals(store.overrides().get("key1"), "val1");
-      assertEquals(store.overrides().get("key2"), "val2");
+      assertEquals(store2.container(), "test-container");
+      assertEquals(store2.endpoint(), "http://test.endpoint");
+      assertTrue(store2.compress());
+      assertEquals(store2.overrides().get("key1"), "val1");
+      assertEquals(store2.overrides().get("key2"), "val2");
+      assertTrue(store2.normalizeCacheNames());
+      assertTrue(store2.normalizeCacheNames());
    }
 }
