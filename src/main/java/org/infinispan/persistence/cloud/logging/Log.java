@@ -23,6 +23,8 @@
 package org.infinispan.persistence.cloud.logging;
 
 import org.infinispan.commons.CacheConfigurationException;
+import org.jboss.logging.Logger.Level;
+import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
 
@@ -50,4 +52,8 @@ public interface Log extends org.infinispan.util.logging.Log {
 
    @Message(value = "Container not specified", id = 7005)
    CacheConfigurationException containerNotSpecified();
+   
+   @LogMessage(level = Level.INFO)
+   @Message(value = "Container hasn't been created yet, waiting...", id = 7006)
+   void waitingForContainer();
 }
