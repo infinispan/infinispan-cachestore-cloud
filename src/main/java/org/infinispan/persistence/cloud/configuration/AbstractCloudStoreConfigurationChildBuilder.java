@@ -68,4 +68,9 @@ public abstract class AbstractCloudStoreConfigurationChildBuilder<S> extends Abs
    public CloudStoreConfigurationBuilder overrides(Properties overrides) {
       return builder.overrides(overrides);
    }
+   
+   @Override
+   public CloudStoreConfigurationBuilder normalizeCacheNames(boolean normalizeCacheNames) {
+      return builder.normalizeCacheNames(normalizeCacheNames);
+   }
 }

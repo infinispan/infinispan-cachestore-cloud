@@ -27,13 +27,14 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    private final String key2StringMapper;
    private final boolean compress;
    private final Properties overrides;
+   private final boolean normalizeCacheNames;
 
    public CloudStoreConfiguration(boolean purgeOnStartup, boolean fetchPersistentState, boolean ignoreModifications,
-                                   AsyncStoreConfiguration async, SingletonStoreConfiguration singletonStore,
-                                   boolean preload, boolean shared, Properties properties,
-                                   String provider, String location, String identity, String credential,
-                                   String container, String endpoint, String key2StringMapper, boolean compress, Properties overrides) {
-      super(purgeOnStartup, fetchPersistentState, ignoreModifications, async, singletonStore, preload, shared, properties);
+         AsyncStoreConfiguration async, SingletonStoreConfiguration singletonStore, boolean preload, boolean shared,
+         Properties properties, String provider, String location, String identity, String credential, String container,
+         String endpoint, String key2StringMapper, boolean compress, Properties overrides, boolean normalizeCacheNames) {
+      super(purgeOnStartup, fetchPersistentState, ignoreModifications, async, singletonStore, preload, shared,
+            properties);
       this.provider = provider;
       this.location = location;
       this.identity = identity;
@@ -43,6 +44,7 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
       this.key2StringMapper = key2StringMapper;
       this.compress = compress;
       this.overrides = overrides;
+      this.normalizeCacheNames = normalizeCacheNames;
    }
 
    public String provider() {
@@ -52,7 +54,7 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    public String location() {
       return location;
    }
-   
+
    public String identity() {
       return identity;
    }
@@ -64,7 +66,7 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    public String container() {
       return container;
    }
-   
+
    public String endpoint() {
       return endpoint;
    }
@@ -72,12 +74,16 @@ public class CloudStoreConfiguration extends AbstractStoreConfiguration {
    public String key2StringMapper() {
       return key2StringMapper;
    }
-   
+
    public boolean compress() {
       return compress;
    }
-   
+
    public Properties overrides() {
       return overrides;
+   }
+   
+   public boolean normalizeCacheNames() {
+      return normalizeCacheNames;
    }
 }

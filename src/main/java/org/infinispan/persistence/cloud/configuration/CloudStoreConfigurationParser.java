@@ -123,6 +123,10 @@ public class CloudStoreConfigurationParser implements ConfigurationParser {
             }
             break;
          }
+         case NORMALIZE_CACHE_NAMES: {
+            builder.normalizeCacheNames(Boolean.parseBoolean(value));
+            break;
+         }
          default: {
             Parser.parseStoreAttribute(reader, i, builder);
             break;
