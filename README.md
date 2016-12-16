@@ -5,10 +5,7 @@ For more information, please refer to [the documentation of this cache store](do
 
 ## Running tests
 ### Amazon AWS
-`mvn -Pintegration test -Dinfinispan.test.jclouds.username=$S3_USER -Dinfinispan.test.jclouds.password=$S3_PWD -Dinfinispan.test.jclouds.service=aws-s3`
+`mvn clean verify -Paws-s3 -Dinfinispan.test.jclouds.username=$S3_ACCESS_KEY -Dinfinispan.test.jclouds.password=$S3_SECRET_KEY`
 
-### Rackspace
-`mvn -Pintegration test -Dinfinispan.test.jclouds.username=$RACKSPACE_USER -Dinfinispan.test.jclouds.password=$RACKSPACE_PWD -Dinfinispan.test.jclouds.service=cloudfiles-us`
-
-### Azure
-`mvn -Pintegration test -Dinfinispan.test.jclouds.username=$AZURE_USER -Dinfinispan.test.jclouds.password=$AZURE_PWD -Dinfinispan.test.jclouds.service=azureblob`
+### OpenStack Swift
+`mvn clean verify -Pswift -Dinfinispan.test.jclouds.username=$SWIFT_TENANT_NAME:$SWIFT_USER_NAME -Dinfinispan.test.jclouds.password=$SWIFT_PASSWORD -Dinfinispan.test.jclouds.endpoint=$SWIFT_ENDPOINT_URL`

@@ -107,7 +107,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       blobStoreContext = contextBuilder.buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
-      containerName = String.format("%s-%s", configuration.container(), initializationContext.getCache().getName());
+      containerName = String.format("%s-%s", configuration.container(), initializationContext.getCache().getName().toLowerCase());
 
       if (!blobStore.containerExists(containerName)) {
          Location location = null;
@@ -137,7 +137,9 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
 
    @Override
    public void stop() {
-      blobStoreContext.close();
+      if (blobStoreContext != null) {
+         blobStoreContext.close();
+      }
    }
 
    private String encodeKey(Object key) {
@@ -422,6 +424,19 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       }
    }
 
+   public String getContainerName() {
+      return containerName;
+   }
+   
+   public void removeContainer() {
+      blobStore.clearContainer(containerName);
+      blobStore.deleteContainer(containerName);
+   }
+   
+   /*package*/ BlobStore getBlobStore() {
+      return blobStore;
+   }
+   
    protected boolean isExpired(BlobMetadata blobMetadata) {
       long now = initializationContext.getTimeService().wallClockTime();
       Map<String, String> ispnMetadata = blobMetadata.getUserMetadata();
@@ -473,6 +488,5 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
 
       return compressedByteArray;
    }
-
 
 }
