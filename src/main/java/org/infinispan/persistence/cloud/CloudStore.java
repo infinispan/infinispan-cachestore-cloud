@@ -119,7 +119,15 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
 
          //make sure container is created
          if(!blobStore.containerExists(containerName)) {
-            throw new PersistenceException(String.format("Unable to create blob container %s", containerName));
+            try {
+               log.waitingForContainer();
+               TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException e) {
+               throw new PersistenceException(String.format("Aborted when creating blob container %s", containerName));
+            }
+            if(!blobStore.containerExists(containerName)) {
+               throw new PersistenceException(String.format("Unable to create blob container %s", containerName));
+            }
          }
       }
    }
