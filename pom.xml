@@ -75,7 +75,7 @@
     <properties>
         <jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2</jboss.releases.repo.url>
         <jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots</jboss.snapshots.repo.url>
-        <version.infinispan>8.2.4.Final</version.infinispan>
+        <version.infinispan>8.2.5.Final</version.infinispan>
         <version.jclouds>1.9.2</version.jclouds>
         <version.jboss.logging.processor>1.1.0.Final</version.jboss.logging.processor>
         <version.guava>17.0</version.guava>
@@ -162,7 +162,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.5.4</version>
+                <version>3.2.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
