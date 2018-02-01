@@ -251,7 +251,7 @@
                                         <include>**/*IT.java</include>
                                     </includes>
                                     <systemPropertyVariables>
-                                        <infinispan.test.jclouds.service>aws-s3</infinispan.test.jclouds.service>
+                                        <infinispan.test.jclouds.service>s3</infinispan.test.jclouds.service>
                                         <infinispan.test.jclouds.endpoint>http://s3.amazonaws.com</infinispan.test.jclouds.endpoint>
                                         <infinispan.test.jclouds.location>us-standard</infinispan.test.jclouds.location>
                                     </systemPropertyVariables>

@@ -107,11 +107,13 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       blobStoreContext = contextBuilder.buildView(BlobStoreContext.class);
 
       blobStore = blobStoreContext.getBlobStore();
-      String cacheName = configuration.normalizeCacheNames() ? 
-            initializationContext.getCache().getName().replaceAll("[^a-zA-Z0-9-]", "-") 
-            : initializationContext.getCache().getName();
+      String cacheName = initializationContext.getCache().getName();
+      if (configuration.normalizeCacheNames()) { 
+         cacheName = cacheName.replaceAll("[^a-zA-Z0-9-]", "-"); // s3 allows [a-zA-Z0-9-.], but azure forbids periods in bucket name 
+         cacheName = cacheName.toLowerCase(); // s3 bucket names can contain only lower case chars 
+      }
       containerName = String.format("%s-%s", configuration.container(), cacheName);
-
+      
       if (!blobStore.containerExists(containerName)) {
          Location location = null;
          if (configuration.location() != null ) {
