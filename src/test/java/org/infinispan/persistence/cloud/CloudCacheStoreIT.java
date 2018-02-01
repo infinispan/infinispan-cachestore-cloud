@@ -84,7 +84,8 @@ public class CloudCacheStoreIT<K, V> extends BaseStoreTest {
          .identity(accessKey)
          .credential(secretKey)
          .container(csBucket)
-         .compress(true);
+         .compress(true)
+         .normalizeCacheNames(true);
       cloudStore.init(createContext(cfgBuilder.build()));
       return cloudStore;
    }
