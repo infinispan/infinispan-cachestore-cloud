@@ -4,7 +4,7 @@
 
     <groupId>org.infinispan</groupId>
     <artifactId>infinispan-cachestore-cloud</artifactId>
-    <version>9.0.0-SNAPSHOT</version>
+    <version>9.0.0.Final</version>
     <packaging>bundle</packaging>
     <name>Infinispan CloudCacheStore</name>
     <description>Infinispan CloudCacheStore module</description>
@@ -56,7 +56,8 @@
         <connection>scm:git:git@github.com:infinispan/infinispan-cachestore-cloud.git</connection>
         <developerConnection>scm:git:git@github.com:infinispan/infinispan-cachestore-cloud.git</developerConnection>
         <url>https://github.com/infinispan/infinispan-cachestore-cloud</url>
-    </scm>
+      <tag>9.0.0.Final</tag>
+  </scm>
 
     <distributionManagement>
         <repository>
