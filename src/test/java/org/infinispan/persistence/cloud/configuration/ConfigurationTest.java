@@ -25,7 +25,7 @@ public class ConfigurationTest {
             .container("test-container")
             .endpoint("http://test.endpoint")
             .compress(true)
-            .overrides(props)
+            .properties(props)
             .normalizeCacheNames(true);
       
             
@@ -38,8 +38,8 @@ public class ConfigurationTest {
       assertEquals(store.container(), "test-container");
       assertEquals(store.endpoint(), "http://test.endpoint");
       assertTrue(store.compress());
-      assertEquals(store.overrides().get("key1"), "val1");
-      assertEquals(store.overrides().get("key2"), "val2");
+      assertEquals(store.properties().get("key1"), "val1");
+      assertEquals(store.properties().get("key2"), "val2");
       assertTrue(store.normalizeCacheNames());
 
       b = new ConfigurationBuilder();
@@ -54,8 +54,8 @@ public class ConfigurationTest {
       assertEquals(store2.container(), "test-container");
       assertEquals(store2.endpoint(), "http://test.endpoint");
       assertTrue(store2.compress());
-      assertEquals(store2.overrides().get("key1"), "val1");
-      assertEquals(store2.overrides().get("key2"), "val2");
+      assertEquals(store2.properties().get("key1"), "val1");
+      assertEquals(store2.properties().get("key2"), "val2");
       assertTrue(store2.normalizeCacheNames());
       assertTrue(store2.normalizeCacheNames());
    }

@@ -23,6 +23,7 @@
 package org.infinispan.persistence.cloud.logging;
 
 import org.infinispan.commons.CacheConfigurationException;
+import org.jboss.logging.BasicLogger;
 import org.jboss.logging.Logger.Level;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
@@ -37,7 +38,7 @@ import org.jboss.logging.annotations.MessageLogger;
  * @since 7.2
  */
 @MessageLogger(projectCode = "ISPN")
-public interface Log extends org.infinispan.util.logging.Log {
+public interface Log extends BasicLogger {
    @Message(value = "Provider not specified", id = 7001)
    CacheConfigurationException providerNotSpecified();
    
@@ -56,4 +57,8 @@ public interface Log extends org.infinispan.util.logging.Log {
    @LogMessage(level = Level.INFO)
    @Message(value = "Container hasn't been created yet, waiting...", id = 7006)
    void waitingForContainer();
+
+   @LogMessage(level = Level.WARN)
+   @Message(value = "The 'overrides' attribute is no longer supported. Use <property> elements instead", id = 7007)
+   void overridesRemoved();
 }

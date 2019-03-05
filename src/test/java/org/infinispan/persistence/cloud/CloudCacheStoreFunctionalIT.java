@@ -1,8 +1,12 @@
 package org.infinispan.persistence.cloud;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.infinispan.Cache;
 import org.infinispan.commons.io.ByteBufferFactoryImpl;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
+import org.infinispan.distribution.ch.impl.HashFunctionPartitioner;
+import org.infinispan.factories.KnownComponentNames;
 import org.infinispan.marshall.core.MarshalledEntryFactoryImpl;
 import org.infinispan.persistence.BaseStoreFunctionalTest;
 import org.infinispan.persistence.InitializationContextImpl;
@@ -59,14 +63,18 @@ public class CloudCacheStoreFunctionalIT extends BaseStoreFunctionalTest {
       for (String name : cacheManager.getCacheNames()) {
          CloudStore ccs = new CloudStore();
          Cache cache = cacheManager.getCache(name);
+         HashFunctionPartitioner partitioner = new HashFunctionPartitioner();
+         partitioner.init(cache.getCacheConfiguration().clustering().hash());
          ccs.init(new InitializationContextImpl(
-                     cache.getAdvancedCache().getCacheConfiguration().persistence().stores().get(0), 
-                     cache, 
-                     TestingUtil.extractGlobalMarshaller(cacheManager),
-                     cache.getAdvancedCache().getComponentRegistry().getTimeService(),
-                     new ByteBufferFactoryImpl(),
-                     new MarshalledEntryFactoryImpl()
-                     ));
+               cache.getAdvancedCache().getCacheConfiguration().persistence().stores().get(0),
+               cache,
+               partitioner,
+               TestingUtil.extractGlobalMarshaller(cacheManager),
+               cache.getAdvancedCache().getComponentRegistry().getTimeService(),
+               new ByteBufferFactoryImpl(),
+               new MarshalledEntryFactoryImpl(),
+               cacheManager.getGlobalComponentRegistry().getComponent(ScheduledExecutorService.class, KnownComponentNames.PERSISTENCE_EXECUTOR)
+         ));
          ccs.start();
          ccs.removeContainer();
          ccs.stop();

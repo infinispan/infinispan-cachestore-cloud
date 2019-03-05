@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan>
+
+   <cache-container>
+      <local-cache name="testCache">
+         <persistence passivation="false">
+            <cloud-store  shared="false" preload="true" 
+                          provider="transient" location="test-location"
+                          identity="me" credential="s3cr3t" container="test-container"
+                          endpoint="http://test.endpoint" compress="true"
+                          normalize-cache-names="true">
+               <property name="key1">val1</property>
+               <property name="key2">val2</property>
+            </cloud-store>
+         </persistence>
+      </local-cache>
+   </cache-container>
+
+</infinispan>
