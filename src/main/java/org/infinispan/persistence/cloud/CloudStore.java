@@ -67,6 +67,7 @@ import com.google.common.net.MediaType;
  */
 public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
    private static final Log log = LogFactory.getLog(CloudStore.class, Log.class);
+   private static final org.infinispan.util.logging.Log coreLog = LogFactory.getLog(CloudStore.class, org.infinispan.util.logging.Log.class);
 
    protected static final String LIFESPAN = "metadata_lifespan";
    protected static final String MAX_IDLE = "metadata_max_idle";
@@ -99,8 +100,8 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
       key2StringMapper.setMarshaller(initializationContext.getMarshaller());
 
       ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.provider()).credentials(configuration.identity(), configuration.credential());
-      if(configuration.overrides() != null)
-         contextBuilder.overrides(configuration.overrides());
+      if(!configuration.properties().isEmpty())
+         contextBuilder.overrides(configuration.properties());
       if(configuration.endpoint() != null && !configuration.endpoint().isEmpty())
          contextBuilder.endpoint(configuration.endpoint());
 
@@ -335,7 +336,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
                   }
                }
             } catch (Exception e) {
-               log.errorExecutingParallelStoreTask(e);
+               coreLog.errorExecutingParallelStoreTask(e);
                throw e;
             }
             return null;
@@ -397,7 +398,7 @@ public class CloudStore<K, V> implements AdvancedLoadWriteStore<K, V> {
                   purgeListener.entryPurged((K)key2StringMapper.getKeyMapping(key));
                }
             } catch (Exception e) {
-               log.errorExecutingParallelStoreTask(e);
+               coreLog.errorExecutingParallelStoreTask(e);
                throw e;
             }
             return null;

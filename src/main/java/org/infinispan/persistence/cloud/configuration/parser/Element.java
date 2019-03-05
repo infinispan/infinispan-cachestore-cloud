@@ -1,4 +1,4 @@
-package org.infinispan.persistence.cloud.configuration;
+package org.infinispan.persistence.cloud.configuration.parser;
 
 import java.util.HashMap;
 import java.util.Map;

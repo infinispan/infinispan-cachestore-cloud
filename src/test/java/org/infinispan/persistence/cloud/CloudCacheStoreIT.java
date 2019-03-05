@@ -7,8 +7,8 @@ import java.io.Serializable;
 import java.util.Collections;
 
 import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.marshall.core.ExternalPojo;
 import org.infinispan.marshall.core.MarshalledEntry;
-import org.infinispan.marshall.core.MarshalledValue;
 import org.infinispan.persistence.BaseStoreTest;
 import org.infinispan.persistence.cloud.configuration.CloudStoreConfigurationBuilder;
 import org.infinispan.persistence.spi.AdvancedLoadWriteStore;
@@ -45,9 +45,9 @@ public class CloudCacheStoreIT<K, V> extends BaseStoreTest {
 
    private static final String sysUsername = System.getProperty("infinispan.test.jclouds.username");
    private static final String sysPassword = System.getProperty("infinispan.test.jclouds.password");
-   private static final String sysService = System.getProperty("infinispan.test.jclouds.service");
+   private static final String sysService = System.getProperty("infinispan.test.jclouds.service", TRANSIENT_PROVIDER);
    private static final String sysEndpoint = System.getProperty("infinispan.test.jclouds.endpoint");
-   private static final String sysLocation = System.getProperty("infinispan.test.jclouds.location");
+   private static final String sysLocation = System.getProperty("infinispan.test.jclouds.location", "test-location");
 
    @BeforeTest
    @Parameters({"infinispan.test.jclouds.username", "infinispan.test.jclouds.password", "infinispan.test.jclouds.service", "infinispan.test.jclouds.endpoint", "infinispan.test.jclouds.location"})
@@ -154,16 +154,17 @@ public class CloudCacheStoreIT<K, V> extends BaseStoreTest {
    }
    
    @Test
-   public void testNegativeHashCodes() throws PersistenceException {
+   public void testNegativeHashCodes() throws Exception {
       ObjectWithNegativeHashcode nho = new ObjectWithNegativeHashcode();
-      MarshalledValue mvKey = new MarshalledValue(nho, getMarshaller());
+      Object mvKey = getMarshaller().objectToByteBuffer(nho);
       cl.write(marshalledEntry(mvKey, "hello", null));
       MarshalledEntry<Object, Object> ice = cl.load(mvKey);
-      assertEquals(((MarshalledValue)ice.getKey()).get(), nho);
+      Object loadedKey = getMarshaller().objectFromByteBuffer((byte[]) ice.getKey());
+      assertEquals(loadedKey, nho);
       assertEquals(ice.getValue(), "hello");
    }
 
-   private static class ObjectWithNegativeHashcode implements Serializable {
+   private static class ObjectWithNegativeHashcode implements Serializable, ExternalPojo {
       private static final long serialVersionUID = 1L;
       String s = "hello";
 

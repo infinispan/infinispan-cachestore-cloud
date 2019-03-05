@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:8.0 http://www.infinispan.org/schemas/infinispan-config-8.0.xsd"
+        xmlns="urn:infinispan:config:8.0">
+   <cache-container default-cache="default">
+      <local-cache name="default">
+         <persistence passivation="false">
+            <cloud-store xmlns="urn:infinispan:config:store:cloud:8.0" provider="transient" location="test-location"
+                         identity="me" credential="s3cr3t" container="test-container"
+                         endpoint="http://test.endpoint" compress="true" overrides="key1=val1, key2=val2"
+                         normalize-cache-names="true"/>
+         </persistence>
+      </local-cache>
+   </cache-container>
+</infinispan>

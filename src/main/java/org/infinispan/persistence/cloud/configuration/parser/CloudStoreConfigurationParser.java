@@ -1,21 +1,22 @@
-package org.infinispan.persistence.cloud.configuration;
+package org.infinispan.persistence.cloud.configuration.parser;
+
+import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperties;
+
+import java.util.Properties;
+
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.cache.PersistenceConfigurationBuilder;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 import org.infinispan.configuration.parsing.ConfigurationParser;
 import org.infinispan.configuration.parsing.Namespace;
-import org.infinispan.configuration.parsing.Namespaces;
 import org.infinispan.configuration.parsing.ParseUtils;
 import org.infinispan.configuration.parsing.Parser;
 import org.infinispan.configuration.parsing.XMLExtendedStreamReader;
+import org.infinispan.persistence.cloud.configuration.CloudStoreConfigurationBuilder;
 import org.kohsuke.MetaInfServices;
-
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import java.util.Properties;
-
-import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperties;
 
 
 /**
@@ -25,13 +26,8 @@ import static org.infinispan.commons.util.StringPropertyReplacer.replaceProperti
 * @since 7.2
 */
 @MetaInfServices
-@Namespaces({
-      @Namespace(uri = "urn:infinispan:config:store:cloud:8.0",
-            root = CloudStoreConfigurationParser.ROOT_ELEMENT),
-      @Namespace(uri = "urn:infinispan:config:store:cloud:7.2",
-                 root = CloudStoreConfigurationParser.ROOT_ELEMENT),
-      @Namespace(root = CloudStoreConfigurationParser.ROOT_ELEMENT)
-})
+@Namespace(root = "cloud-store")
+@Namespace(uri = "urn:infinispan:config:store:cloud:*", root = "cloud-store", since = "7.2")
 public class CloudStoreConfigurationParser implements ConfigurationParser {
 
    public static final String ROOT_ELEMENT = "cloud-store";
@@ -116,10 +112,14 @@ public class CloudStoreConfigurationParser implements ConfigurationParser {
             break;
          }
          case OVERRIDES: {
-            try {
-               builder.overrides(parseProperties(value));
-            } catch(IllegalArgumentException e) {
-               ParseUtils.invalidAttributeValue(reader, i);
+            if (reader.getSchema().since(9, 0)) {
+               throw ParseUtils.unexpectedAttribute(reader, i);
+            } else {
+               try {
+                  builder.properties(parseProperties(value));
+               } catch(IllegalArgumentException e) {
+                  ParseUtils.invalidAttributeValue(reader, i);
+               }
             }
             break;
          }
@@ -149,7 +149,7 @@ public class CloudStoreConfigurationParser implements ConfigurationParser {
       for(String prop : props) {
          String[] keyVal = prop.split(PROPERTY_SEPARATOR);
          if (keyVal.length != 2 || keyVal[0] == null || keyVal[1] == null)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(prop);
 
          overrides.put(keyVal[0].trim(), keyVal[1].trim());
       }

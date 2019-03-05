@@ -1,4 +1,4 @@
-package org.infinispan.persistence.cloud.configuration;
+package org.infinispan.persistence.cloud.configuration.parser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +28,7 @@ public enum Attribute {
 
    private final String name;
 
-   private Attribute(final String name) {
+   Attribute(final String name) {
       this.name = name;
    }
 

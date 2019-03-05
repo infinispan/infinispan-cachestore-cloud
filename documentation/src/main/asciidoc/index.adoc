@@ -3,91 +3,59 @@ The Infinispan Community
 :icons: font
 
 == Introduction
-The `CloudCacheStore` implementation utilizes http://jclouds.apache.org/[JClouds] to communicate with cloud storage providers such as http://aws.amazon.com/s3/[Amazon's S3],
-OpenStack http://docs.openstack.org/developer/swift/[Swift] or any other such provider supported by JClouds.
-See JClouds https://jclouds.apache.org/reference/providers/[list of providers] for complete list of supported cloud stores.
+The `CloudCacheStore` implementation utilizes link:$$https://jclouds.apache.org/$$[JClouds]
+to communicate with cloud storage providers such as link:$$http://aws.amazon.com/s3/$$[Amazon's S3],
+Rackspace's link:$$http://www.rackspacecloud.com/cloud_hosting_products/files$$[Cloudfiles]
+or any other such provider supported by JClouds.
 
-=== Benefits
-If you're planning to use Amazon S3 or any oteher cloud storage, consider using it with Infinispan.
-Infinispan itself provides in-memory caching for your data to minimize the amount of remote access calls, thus reducing the latency and cost of fetching your data from cloud store provider.
+=== Amazon
+If you're planning to use Amazon S3 for storage, consider using it with Infinispan.
+Infinispan itself provides in-memory caching for your data to minimize the amount
+of remote access calls, thus reducing the latency and cost of fetching your
+Amazon S3 data.
 
-With cache replication, you are also able to load data from your local cluster without having to remotely access it every time.
+With cache replication, you are also able to load data from your local cluster
+without having to remotely access it every time.
 
 ==== Transactions
-Note that most of the cloud store providers do not support transactions.
-If transactions are used in your application then there is some possibility of state inconsistency when using this cache loader.
-However, writes are atomic, in that if a write fails nothing is considered written and data is never corrupted.
+Note that Amazon S3 does not support transactions.
+
+If transactions are used in your application then there is some possibility of
+state inconsistency when using this cache loader.
+
+However, writes are atomic, in that if a write fails nothing is considered
+written and data is never corrupted.
+
+== Javadoc
+For a list of configuration refer to the link:$$http://docs.jboss.org/infinispan/stores/cloud/9.0/apidocs/org/infinispan/persistence/cloud/configuration/CloudStoreConfigurationBuilder.html$$[javadoc] . 
 
 == Configuration
-Your application needs dependency on Infinispan Cloud Cache store artifact.
-In case of Maven, add following dependency:
 
-[source, xml]
-----
-<dependency>
-    <groupId>org.infinispan</groupId>
-    <artifactId>infinispan-cachestore-cloud</artifactId>
-    <version>${version.cachestore.cloud}</version>
-</dependency>
+NOTE: for details on configuration specific to each underlying provider, refer to the JClouds BlobStore docs at https://jclouds.apache.org/reference/providers/#blobstore
+
+The following example shows how to connect to an S3 store:
+
+[source,xml]
+.infinispan.xml
 ----
 
-To minimize the size of the artifact, Infinispan Cloud Cache Store depends only on JClouds core `jclouds-blobstore` artifacts.
-JClouds artifact with implementation of selected provider needs to be added on the class path or as a Maven dependency.
+<infinispan
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:9.4 http://www.infinispan.org/schemas/infinispan-config-9.4.xsd"
+        xmlns="urn:infinispan:config:9.0">
+    <cache-container default-cache="default">
+        <local-cache name="default">
+            <persistence passivation="false">
+                <cloud-store xmlns="urn:infinispan:config:store:cloud:9.4"
+                    provider="aws-s3"
+                    identity="me" credential="s3cr3t"
+                    compress="true"
+                    normalize-cache-names="true"/>
+            </persistence>
+        </local-cache>
+    </cache-container>
+</infinispan>
 
-In most of tha cases you have to configure at least end point of the service, container name prefix and credentials for authentication to the servise.
-See examples bellow for more details.
-
-=== Amazon S3
-Add following Maven dependency to your project:
-
-[source, xml]
-----
-<dependency>
-    <groupId>org.apache.jclouds.provider</groupId>
-    <artifactId>aws-s3</artifactId>
-    <version>${version.jclouds}</version>
-</dependency>
-----
-
-You should create http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html[AWS IAM] user, grant the user appropriate permission policy (e.g. `AmazonS3FullAccess`) and generate security credentials for this user.
-Access key ID will be used as your identity and secret access key as credential.
-Example programatic configuration is below.
-
-[source, java]
-----
-cfg.persistence().addStore(CloudStoreConfigurationBuilder.class)
-    .provider("aws-s3")
-    .endpoint("http://s3.amazonaws.com")
-    .identity("Access Key ID")
-    .credential("Secret Access Key")
-    .container("ispn-store")
-    .location("us-standard");
 ----
 
 
-=== OpenStack Swift
-Add following Maven dependency to your project:
-
-[source, xml]
-----
-<dependency>
-    <groupId>org.apache.jclouds.api</groupId>
-    <artifactId>openstack-swift</artifactId>
-    <version>${version.jclouds}</version>
-</dependency>
-----
-
-As identity use your tenant name concatenate with your user name by column, i.e. `tenant_name:user_name`.
-You should not specify the region, as it will very likely result into an error.
-JClouds will select region automatically, proper region selection which would work also with Swift needs to be implenented.
-
-Example of programatic configuration is bellow:
-
-[source, java]
-----
-cfg.persistence().addStore(CloudStoreConfigurationBuilder.class).provider("openstack-swift")
-    .endpoint("http://swift_url:5000/v2.0")
-    .identity("tenant_name:user_name")
-    .credential("password")
-    .container("ispn-store");
-----

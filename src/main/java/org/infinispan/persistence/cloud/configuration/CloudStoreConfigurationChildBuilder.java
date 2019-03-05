@@ -1,7 +1,5 @@
 package org.infinispan.persistence.cloud.configuration;
 
-import java.util.Properties;
-
 import org.infinispan.configuration.cache.StoreConfigurationChildBuilder;
 import org.infinispan.persistence.keymappers.MarshallingTwoWayKey2StringMapper;
 
@@ -46,14 +44,14 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
    /**
     * The class name of a {@link org.infinispan.persistence.keymappers.Key2StringMapper} to use for
     * mapping keys to strings suitable for RESTful retrieval/storage. Defaults to
-    * {@link org.infinispan.persistence.keymappers.MarshalledValueOrPrimitiveMapper}
+    * {@link org.infinispan.persistence.keymappers.WrappedByteArrayOrPrimitiveMapper}
     */
    CloudStoreConfigurationBuilder key2StringMapper(String key2StringMapper);
 
    /**
     * The class of a {@link org.infinispan.persistence.keymappers.Key2StringMapper} to use for
     * mapping keys to strings suitable for RESTful retrieval/storage. Defaults to
-    * {@link org.infinispan.persistence.keymappers.MarshalledValueOrPrimitiveMapper}
+    * {@link org.infinispan.persistence.keymappers.WrappedByteArrayOrPrimitiveMapper}
     */
    CloudStoreConfigurationBuilder key2StringMapper(Class<? extends MarshallingTwoWayKey2StringMapper> klass);
 
@@ -61,12 +59,6 @@ public interface CloudStoreConfigurationChildBuilder<S> extends StoreConfigurati
     * Payload compression option - if true, payload will be compressed before passed to BlobStore.
     */
    CloudStoreConfigurationBuilder compress(boolean compress);
-
-   /**
-    * Additional properties which can be use to additional configuration of specified blobstore.
-    * Comma separated list of properties.
-    */
-   CloudStoreConfigurationBuilder overrides(Properties overrides);
 
    /**
     * When turned on, all non-aplhanumeric and non-digit characters in names of the caches will be
